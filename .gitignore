@@ -1,0 +1,41 @@
+# Environment and local secrets
+.env
+.env.*
+!.env.example
+!.env.*.example
+**/appsettings.Local.json
+**/appsettings.*.local.json
+**/appsettings.Development.json
+
+# .NET build output and local tooling
+[Bb]in/
+[Oo]bj/
+.vs/
+TestResults/
+*.user
+*.suo
+*.nupkg
+
+# Frontend dependencies and build output
+node_modules/
+dist/
+dist-ssr/
+*.tsbuildinfo
+*.local
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# IDE and operating-system files
+.idea/
+.vscode/*
+!.vscode/extensions.json
+.DS_Store
+Thumbs.db
+
+# Local Docker/database data and generated certificates
+docker-data/
+*.pem
+*.key
+*.crt

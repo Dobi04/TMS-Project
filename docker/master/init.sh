@@ -1,0 +1,14 @@
+#!/bin/bash
+
+set -eu
+
+: "${MYSQL_ROOT_PASSWORD:?MYSQL_ROOT_PASSWORD is required}"
+: "${MYSQL_DATABASE:?MYSQL_DATABASE is required}"
+: "${REPL_USER:?REPL_USER is required}"
+: "${REPL_PASS:?REPL_PASS is required}"
+
+mysql --protocol=socket -uroot -p"${MYSQL_ROOT_PASSWORD}" "${MYSQL_DATABASE}" <<SQL
+CREATE USER IF NOT EXISTS '${REPL_USER}'@'%' IDENTIFIED BY '${REPL_PASS}';
+GRANT REPLICATION SLAVE ON *.* TO '${REPL_USER}'@'%';
+FLUSH PRIVILEGES;
+SQL

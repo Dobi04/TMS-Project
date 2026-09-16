@@ -1,0 +1,80 @@
+services:
+  mysql-master:
+    build:
+      context: ./docker/master
+      dockerfile: Dockerfile
+    container_name: project_master_TMS
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?Set MYSQL_ROOT_PASSWORD in .env}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-excursion_db}
+      REPL_USER: ${REPL_USER:?Set REPL_USER in .env}
+      REPL_PASS: ${REPL_PASS:?Set REPL_PASS in .env}
+    ports:
+      - "3306:3306"
+    volumes:
+      - master_data:/var/lib/mysql
+    networks:
+      - project_net
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -uroot -p$${MYSQL_ROOT_PASSWORD} --silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 15
+
+  mysql-slave1:
+    build:
+      context: ./docker/slave1
+      dockerfile: Dockerfile
+    container_name: project_slave1_TMS
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?Set MYSQL_ROOT_PASSWORD in .env}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-excursion_db}
+    ports:
+      - "3307:3306"
+    volumes:
+      - slave1_data:/var/lib/mysql
+    networks:
+      - project_net
+    depends_on:
+      mysql-master:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -uroot -p$${MYSQL_ROOT_PASSWORD} --silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 15
+
+  mysql-slave2:
+    build:
+      context: ./docker/slave2
+      dockerfile: Dockerfile
+    container_name: project_slave2_TMS
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?Set MYSQL_ROOT_PASSWORD in .env}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-excursion_db}
+    ports:
+      - "3308:3306"
+    volumes:
+      - slave2_data:/var/lib/mysql
+    networks:
+      - project_net
+    depends_on:
+      mysql-master:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -uroot -p$${MYSQL_ROOT_PASSWORD} --silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 15
+
+volumes:
+  master_data:
+  slave1_data:
+  slave2_data:
+
+networks:
+  project_net:
+    driver: bridge
