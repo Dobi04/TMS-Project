@@ -11,6 +11,9 @@ namespace TMS.Infrastructure.Persistence
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
         public DbSet<User> Users => Set<User>();
         public DbSet<PendingUserRegistration> PendingUserRegistrations => Set<PendingUserRegistration>();
+        public DbSet<Machine> Machines => Set<Machine>();
+        public DbSet<Tyre> Tyres => Set<Tyre>();
+        public DbSet<Sales> Sales => Set<Sales>();
         
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

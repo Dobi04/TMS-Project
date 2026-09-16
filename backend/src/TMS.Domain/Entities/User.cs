@@ -10,8 +10,9 @@ namespace TMS.Domain.Entities
         public string Username { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
         public string PasswordHash { get; set; } = string.Empty;
-        public Roles Role { get; set; } = Roles.User;
+        public Roles Role { get; set; } = Roles.Guest;
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public bool isEmailVerified { get; set; } = false;
+        public bool isActive { get; set; } = true;
     }
 }
