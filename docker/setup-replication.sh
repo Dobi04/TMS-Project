@@ -21,7 +21,7 @@ S2="mysql -h${MYSQL_HOST} -P${SLAVE2_PORT} -uroot -p${ROOT_PASS} --protocol=TCP 
 SCHEMA_FILE="/tmp/project_schema.sql"
 
 echo "========================================================"
-echo "  ExcursionSaaS -- MySQL Replication Setup"
+echo "  TMS -- MySQL Replication Setup"
 echo "========================================================"
 
 # 1. Provera dostupnosti nodova

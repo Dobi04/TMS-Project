@@ -6,10 +6,11 @@ export type NavItem = {
 
 export const navItems: NavItem[] = [
   { label: 'Home', icon: '⌂', to: '/' },
-  { label: 'Excursions', icon: '🗺️', to: '/excursions' },
-  { label: 'Tracking', icon: '📍', to: '/tracking' },
-  { label: 'Payments', icon: '💳', to: '/payments' },
-  { label: 'Admin', icon: '⚙️', to: '/admin' },
+  { label: 'My Entrys', icon: '▤', to: '/my-entrys' },
+  { label: 'Sale History', icon: '▥', to: '/sale-history' },
+  { label: 'Production History', icon: '◫', to: '/production-history' },
+  { label: 'Audit Log', icon: '⌕', to: '/audit-log' },
+  { label: 'Summary Reports', icon: '▦', to: '/summary-reports' },
 ];
 
 export function getVisibleNavItems(isLoggedIn: boolean, role: string) {
@@ -19,9 +20,15 @@ export function getVisibleNavItems(isLoggedIn: boolean, role: string) {
     return navItems.filter((item) => item.to === '/');
   }
 
-  if (normalizedRole === 'admin') {
-    return navItems;
-  }
-
-  return navItems.filter((item) => item.to !== '/admin');
+  return navItems.filter((item) => {
+    if (item.to === '/admin') return normalizedRole === 'admin';
+    if (item.to === '/my-entrys') return normalizedRole === 'productionoperator';
+    if (['/sale-history', '/production-history', '/audit-log'].includes(item.to)) {
+      return normalizedRole === 'qualitysupervisor';
+    }
+    if (item.to === '/summary-reports') {
+      return ['businessunitleader', 'busisinessunitleader'].includes(normalizedRole);
+    }
+    return true;
+  });
 }

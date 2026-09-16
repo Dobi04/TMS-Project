@@ -26,7 +26,7 @@ namespace TMS.API.Controllers
 
         #region Authentication Endpoints
         [HttpGet("me")]
-        [Authorize]
+        //[Authorize]
         public IActionResult Me()
         {
             var username = User.FindFirstValue(ClaimTypes.Name);
@@ -122,7 +122,7 @@ namespace TMS.API.Controllers
             {
                 HttpOnly = true,
                 Secure = true,
-                SameSite = SameSiteMode.Strict,
+                SameSite = SameSiteMode.None,
                 Expires = DateTime.UtcNow.AddHours(1)
             };
             Response.Cookies.Append("authToken", token, cookieOptions);

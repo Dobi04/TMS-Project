@@ -301,39 +301,41 @@ export default function AuthModal({ isOpen, mode, onClose, onModeChange, onAuthS
 
         {step === 'verify' && (
           <div className="mt-4 text-center">
-            <h2 className="text-xl font-semibold text-white">Verify your Email</h2>
-            <p className="mt-2 text-sm text-slate-300">
-              A code was just sent to <span className="text-white">{pendingEmail}</span>
+            <div className="mx-auto flex h-14 w-14 items-center justify-center border-2 border-[#f5c400] bg-[#183b70] text-xl font-black text-[#f5c400]">@</div>
+            <p className="mt-5 text-xs font-bold uppercase tracking-[0.2em] text-[#e4002b]">Michelin TMS</p>
+            <h2 className="mt-2 text-2xl font-black text-[#183b70]">Verify your email</h2>
+            <p className="mt-2 text-sm text-slate-500">
+              A verification code was sent to <span className="font-semibold text-[#183b70]">{pendingEmail}</span>
             </p>
 
             <form className="mt-5 space-y-4 text-left" onSubmit={handleVerify}>
               <label className="block">
-                <span className="mb-2 block text-sm font-medium text-slate-300">Enter your code:</span>
+                <span className="mb-2 block text-sm font-medium text-[#183b70]">Enter your 6-digit code</span>
                 <input
                   name="code"
                   value={verificationCode}
                   onChange={(e) => setVerificationCode(e.target.value)}
                   required
                   maxLength={6}
-                  className="w-full rounded-2xl border border-slate-700 bg-slate-800 px-3 py-3 text-center text-lg tracking-widest text-white outline-none focus:border-violet-400"
+                  className="w-full border border-slate-200 bg-slate-50 px-3 py-3 text-center text-lg tracking-widest text-[#183b70] outline-none focus:border-[#f5c400]"
                   placeholder="XXX XXX"
                 />
               </label>
 
-              {error && <p className="text-sm font-medium text-rose-400">{error}</p>}
-              {success && <p className="text-sm font-medium text-emerald-400">{success}</p>}
+              {error && <p className="text-sm font-medium text-[#e4002b]">{error}</p>}
+              {success && <p className="text-sm font-medium text-emerald-700">{success}</p>}
 
               <button
                 type="submit"
-                className="w-full rounded-2xl bg-violet-500 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-violet-500/30 disabled:opacity-70"
+                className="w-full bg-[#e4002b] px-4 py-3 text-sm font-bold uppercase tracking-widest text-white shadow-md transition hover:bg-[#b90024] disabled:cursor-not-allowed disabled:opacity-70"
                 disabled={isSubmitting}
               >
                 {isSubmitting ? 'Please wait...' : 'Verify'}
               </button>
 
-              <p className="text-center text-xs text-slate-400">
+              <p className="text-center text-xs text-slate-500">
                 Didn't get a code?{' '}
-                <button type="button" onClick={handleResend} className="text-violet-400 underline">
+                <button type="button" onClick={handleResend} className="font-bold text-[#183b70] underline decoration-[#f5c400] decoration-2 underline-offset-4">
                   Resend
                 </button>
               </p>
@@ -343,15 +345,16 @@ export default function AuthModal({ isOpen, mode, onClose, onModeChange, onAuthS
 
         {step === 'success' && (
           <div className="mt-4 text-center">
-            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-500 text-2xl text-white">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center border-4 border-[#f5c400] bg-[#183b70] text-2xl font-black text-[#f5c400]">
               ✓
             </div>
-            <h2 className="mt-4 text-xl font-semibold text-white">Success!</h2>
-            <p className="mt-2 text-sm text-slate-300">You have successfully been verified</p>
+            <p className="mt-5 text-xs font-bold uppercase tracking-[0.2em] text-[#e4002b]">Account verified</p>
+            <h2 className="mt-2 text-2xl font-black text-[#183b70]">Welcome to Michelin TMS</h2>
+            <p className="mt-2 text-sm text-slate-500">You have successfully completed email verification.</p>
             <button
               type="button"
               onClick={onClose}
-              className="mt-5 w-full rounded-2xl bg-violet-500 px-4 py-3 text-sm font-semibold text-white"
+              className="mt-6 w-full bg-[#e4002b] px-4 py-3 text-sm font-bold uppercase tracking-widest text-white shadow-md transition hover:bg-[#b90024]"
             >
               Main Page
             </button>

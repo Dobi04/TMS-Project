@@ -23,6 +23,10 @@ export default function Header({
   onLogout,
   onOpenAuth,
 }: Props) {
+  const isProductionOperator = role.trim().toLowerCase() === 'productionoperator';
+  const isQualitySupervisor = role.trim().toLowerCase() === 'qualitysupervisor';
+  const isBusinessUnitLeader = role.trim().toLowerCase() === 'businessunitleader';
+
   return (
     <header className={`sticky top-0 z-20 border-b ${classes.headerBg}`}>
       <div className="mx-auto flex min-h-20 max-w-7xl items-center justify-between gap-6 px-5 sm:px-8 lg:px-10">
@@ -38,8 +42,11 @@ export default function Header({
 
         <nav className="hidden items-center gap-7 md:flex" aria-label="Main navigation">
           <a className="text-sm font-semibold text-[#183b70]" href="/">Home</a>
-          {isLoggedIn && <a className="text-sm font-medium text-slate-500 transition hover:text-[#183b70]" href="/excursions">Workspace</a>}
-          {isLoggedIn && <a className="text-sm font-medium text-slate-500 transition hover:text-[#183b70]" href="/tracking">Reports</a>}
+          {isLoggedIn && isProductionOperator && <a className="text-sm font-medium text-slate-500 transition hover:text-[#183b70]" href="/my-entrys">My Entrys</a>}
+          {isLoggedIn && isQualitySupervisor && <a className="text-sm font-medium text-slate-500 transition hover:text-[#183b70]" href="/sale-history">Sale History</a>}
+          {isLoggedIn && isQualitySupervisor && <a className="text-sm font-medium text-slate-500 transition hover:text-[#183b70]" href="/production-history">Production History</a>}
+          {isLoggedIn && isQualitySupervisor && <a className="text-sm font-medium text-slate-500 transition hover:text-[#183b70]" href="/audit-log">Audit Log</a>}
+          {isLoggedIn && isBusinessUnitLeader && <a className="text-sm font-medium text-slate-500 transition hover:text-[#183b70]" href="/summary-reports">Summary Reports</a>}
         </nav>
 
         <div className="flex items-center gap-2 sm:gap-3">

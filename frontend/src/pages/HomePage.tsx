@@ -1,43 +1,7 @@
-import { Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 
-const roleKey = (role: string) => role.trim().toLowerCase().replace(/\s+/g, ' ');
-
-const roleContent = {
-  operator: {
-    title: 'Production workspace',
-    description: 'Create tyre production entries and keep a clear history of your own work.',
-    action: 'Create production entry',
-    link: '/excursions',
-    items: ['New production entry', 'My entry history'],
-  },
-  leader: {
-    title: 'Business intelligence',
-    description: 'Review production performance and reports across your business unit.',
-    action: 'Open reports',
-    link: '/tracking',
-    items: ['Production overview', 'Business unit reports'],
-  },
-  quality: {
-    title: 'Quality control centre',
-    description: 'Register sales, edit production records, and follow every change in the audit log.',
-    action: 'Open quality workspace',
-    link: '/payments',
-    items: ['Sales records', 'Production history', 'Audit log'],
-  },
-} as const;
-
-function getRoleContent(role: string) {
-  const normalized = roleKey(role);
-  if (normalized.includes('product') || normalized.includes('operator')) return roleContent.operator;
-  if (normalized.includes('business') || normalized.includes('leader')) return roleContent.leader;
-  if (normalized.includes('quality') || normalized.includes('supervisor')) return roleContent.quality;
-  return null;
-}
-
 export default function HomePage() {
-  const { username, role, isLogedIn: isLoggedIn } = useAuth();
-  const workspace = getRoleContent(role);
+  const { username, isLogedIn: isLoggedIn } = useAuth();
 
   return (
     <section className="space-y-8" aria-label="Shared home page">
@@ -84,22 +48,6 @@ export default function HomePage() {
           </ol>
         </article>
       </div>
-
-      {isLoggedIn && workspace && (
-        <section className="border border-slate-200 bg-white p-6 shadow-[0_12px_30px_rgba(24,59,112,0.08)] sm:p-8" aria-label="Role workspace">
-          <div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-end">
-            <div>
-              <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#e4002b]">Your role workspace</p>
-              <h2 className="mt-3 text-3xl font-black text-[#183b70]">{workspace.title}</h2>
-              <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">{workspace.description}</p>
-            </div>
-            <Link to={workspace.link} className="inline-flex shrink-0 items-center justify-center bg-[#e4002b] px-5 py-3 text-xs font-bold uppercase tracking-widest text-white transition hover:bg-[#b90024]">{workspace.action}</Link>
-          </div>
-          <div className="mt-7 grid gap-3 sm:grid-cols-3">
-            {workspace.items.map((item, index) => <div key={item} className="border-l-2 border-[#f5c400] bg-slate-50 px-4 py-4"><span className="text-xs font-bold text-[#e4002b]">0{index + 1}</span><p className="mt-2 text-sm font-semibold text-[#183b70]">{item}</p></div>)}
-          </div>
-        </section>
-      )}
     </section>
   );
 }

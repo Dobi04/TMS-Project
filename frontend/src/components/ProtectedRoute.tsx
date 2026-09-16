@@ -26,3 +26,37 @@ export function RequireAdmin() {
 
   return <Outlet />;
 }
+
+export function RequireProductionOperator() {
+  const { isLogedIn, role } = useAuth();
+  const normalizedRole = normalizeRole(role);
+
+  if (!isLogedIn || normalizedRole !== 'productionoperator') {
+    return <Navigate to="/" replace />;
+  }
+
+  return <Outlet />;
+}
+
+export function RequireQualitySupervisor() {
+  const { isLogedIn, role } = useAuth();
+  const normalizedRole = normalizeRole(role);
+
+  if (!isLogedIn || normalizedRole !== 'qualitysupervisor') {
+    return <Navigate to="/" replace />;
+  }
+
+  return <Outlet />;
+}
+
+export function RequireBusinessUnitLeader() {
+  const { isLogedIn, role } = useAuth();
+  const normalizedRole = normalizeRole(role);
+  const isBusinessUnitLeader = ['businessunitleader', 'busisinessunitleader'].includes(normalizedRole);
+
+  if (!isLogedIn || !isBusinessUnitLeader) {
+    return <Navigate to="/" replace />;
+  }
+
+  return <Outlet />;
+}

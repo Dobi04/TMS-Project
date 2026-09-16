@@ -1,12 +1,17 @@
 import { useEffect } from 'react';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import MainLayout from './layouts/MainLayout';
-import { RequireAdmin, RequireAuth } from './components/ProtectedRoute';
+import {
+  RequireBusinessUnitLeader,
+  RequireProductionOperator,
+  RequireQualitySupervisor,
+} from './components/ProtectedRoute';
 import HomePage from './pages/HomePage';
-import ExcursionsPage from './pages/ExcursionsPage';
-import TrackingPage from './pages/TrackingPage';
-import PaymentsPage from './pages/PaymentsPage';
-import AdminPage from './pages/AdminPage';
+import MyEntrysPage from './pages/MyEntrysPage';
+import SaleHistoryPage from './pages/SaleHistoryPage';
+import ProductionHistoryPage from './pages/ProductionHistoryPage';
+import AuditLogPage from './pages/AuditLogPage';
+import SummaryReportsPage from './pages/SummaryReportsPage';
 import { apiClient } from './api/client';
 
 function App() {
@@ -29,14 +34,18 @@ function App() {
         <Route element={<MainLayout />}>
           <Route path="/" element={<HomePage />} />
 
-          <Route element={<RequireAuth />}>
-            <Route path="/excursions" element={<ExcursionsPage />} />
-            <Route path="/tracking" element={<TrackingPage />} />
-            <Route path="/payments" element={<PaymentsPage />} />
+          <Route element={<RequireProductionOperator />}>
+            <Route path="/my-entrys" element={<MyEntrysPage />} />
           </Route>
 
-          <Route element={<RequireAdmin />}>
-            <Route path="/admin" element={<AdminPage />} />
+          <Route element={<RequireQualitySupervisor />}>
+            <Route path="/sale-history" element={<SaleHistoryPage />} />
+            <Route path="/production-history" element={<ProductionHistoryPage />} />
+            <Route path="/audit-log" element={<AuditLogPage />} />
+          </Route>
+
+          <Route element={<RequireBusinessUnitLeader />}>
+            <Route path="/summary-reports" element={<SummaryReportsPage />} />
           </Route>
         </Route>
       </Routes>
