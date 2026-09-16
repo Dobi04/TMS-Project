@@ -1,4 +1,4 @@
-namespace TMS.Domain.Enums.Users
+namespace TMS.Domain.Enums
 {
     public enum Roles
     {

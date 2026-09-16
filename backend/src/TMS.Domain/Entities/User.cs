@@ -1,4 +1,4 @@
-using TMS.Domain.Enums.Users;
+using TMS.Domain.Enums;
 
 namespace TMS.Domain.Entities
 {
