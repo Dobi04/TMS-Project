@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using TMS.Application.DTOs.TireDTOs;
 using TMS.Application.DTOs.TyreDTOs;
 using TMS.Application.Interfaces.Project_Functionality;
 using TMS.Application.Interfaces.Repositories;
@@ -23,8 +22,8 @@ namespace TMS.Application.Services
         #region ProductionOperator Operations Only
         public async Task<List<TyreResponseDTO>> GetMyTyresAsync(int operatorId)
         {
-            var tyres = await _tyreRepository.FindByIdAsync(operatorId);
-            return tyres.Selelct(ToResponseDto).ToList();
+            var tyres = await _tyreRepository.FindByOperatorIdAsync(operatorId);
+            return tyres.Select(ToResponseDto).ToList();
         }
         #endregion
 

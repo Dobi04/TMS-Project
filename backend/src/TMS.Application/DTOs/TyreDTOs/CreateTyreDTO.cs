@@ -5,7 +5,7 @@ using System.Data;
 using System.Text;
 using TMS.Domain.Enums;
 
-namespace TMS.Application.DTOs.TireDTOs
+namespace TMS.Application.DTOs.TyreDTOs
 {
     public class CreateTyreDTO
     {

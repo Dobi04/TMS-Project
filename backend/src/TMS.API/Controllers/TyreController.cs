@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using System.Security.Claims;
-using TMS.Application.DTOs.TireDTOs;
 using TMS.Application.DTOs.TyreDTOs;
 using TMS.Application.Interfaces.Project_Functionality;
 using TMS.Domain.Enums;

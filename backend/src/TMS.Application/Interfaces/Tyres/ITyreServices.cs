@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using TMS.Application.DTOs.TireDTOs;
 using TMS.Application.DTOs.TyreDTOs;
 
 namespace TMS.Application.Interfaces.Project_Functionality
