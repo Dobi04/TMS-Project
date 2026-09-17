@@ -30,6 +30,8 @@ namespace TMS.Infrastructure
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<IEmailSender, SmtpEmailSender>();
 
+            services.AddScoped<ITyreRepository, TyreRepository>();
+
             return services;
         }
         #endregion
