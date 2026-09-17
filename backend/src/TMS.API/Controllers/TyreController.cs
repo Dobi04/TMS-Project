@@ -1,0 +1,92 @@
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
+using System.Security.Claims;
+using TMS.Application.DTOs.TireDTOs;
+using TMS.Application.DTOs.TyreDTOs;
+using TMS.Application.Interfaces.Project_Functionality;
+using TMS.Domain.Enums;
+
+namespace TMS.API.Controllers
+{
+    [ApiController]
+    [Authorize]
+    [EnableRateLimiting("auth")]
+    [Route("api/[controller]")]
+    public class TyreController : ControllerBase
+    {
+        #region Constants and Constructors
+        private readonly ITyreServices _tyreServices;
+
+        public TyreController(ITyreServices tyreServices)
+        {
+            _tyreServices = tyreServices;
+        }
+        #endregion
+
+        #region ProductionOperator Endpoint
+        [HttpGet("mine")]
+        [Authorize(Roles = nameof(Roles.ProductionOperator))]
+        public async Task<IActionResult> GetMyTyres()
+        {
+            var operatorId = GetCurrentUserId();
+            var tyres = await _tyreServices.GetMyTyresAsync(operatorId);
+            return Ok(tyres);
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "ProductionOperator,QualitySupervisor")]
+        public async Task<IActionResult> CreateTyre(CreateTyreDTO dto)
+        {
+            try
+            {
+                var operatorId = GetCurrentUserId();
+                var result = await _tyreServices.CreateTyreAsync(operatorId, dto);
+                return Created($"/api/tyre/{result.Id}", result);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+        #endregion
+
+        #region QualitySupervisor Endpoint
+        [HttpGet]
+        [Authorize(Roles = "QualitySupervisor")]
+        public async Task<IActionResult> GetAllTyres()
+        {
+            var tyres = await _tyreServices.GetAllTyresAsync();
+            return Ok(tyres);
+        }
+
+        [HttpPut("{id:int}")]
+        [Authorize(Roles = "QualitySupervisor")]
+        public async Task<IActionResult> UpdateTyre(int id, UpdateTyreDTO dto)
+        {
+            try
+            {
+                var result = await _tyreServices.UpdateTyreAsync(id, dto);
+                return Ok(result);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        #endregion
+
+        #region Helpers
+        private int GetCurrentUserId()
+        {
+            var idClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            return int.Parse(idClaim!);
+        }
+        #endregion
+    }
+}
