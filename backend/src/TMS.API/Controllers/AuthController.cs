@@ -128,7 +128,8 @@ namespace TMS.API.Controllers
         private void SetAuthCookie(string token)
         {
             double minutes;
-            double.TryParse(_configuration["Jwt:ExpiresInMinutes"], out minutes);
+            if (!double.TryParse(_configuration["Jwt:ExpiresInMinutes"], out minutes))
+                throw new InvalidOperationException("Jwt:ExpiresInMinutes in not configured correctly");
             var cookieOptions = new CookieOptions
             {
                 HttpOnly = true,
