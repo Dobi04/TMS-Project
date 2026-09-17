@@ -15,7 +15,6 @@ namespace TMS.Application.DTOs.TyreDTOs
         [Required, Range(1, int.MaxValue)]
         public int QuantityProduced { get; set; }
 
-        [Required]
         public Shift ProductionShift { get; set; } = Shift.NotAdded;
 
         [Required, Range(1,int.MaxValue)]

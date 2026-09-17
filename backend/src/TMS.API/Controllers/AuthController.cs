@@ -18,10 +18,12 @@ namespace TMS.API.Controllers
     {
         #region Constants and Constructors
         private readonly IAuthServices _authService;
+        private readonly IConfiguration _configuration;
 
-        public AuthController(IAuthServices authService)
+        public AuthController(IAuthServices authService, IConfiguration configuration)
         {
             _authService = authService;
+            _configuration = configuration;
         }
         #endregion
 
@@ -125,12 +127,14 @@ namespace TMS.API.Controllers
         #region Helpers
         private void SetAuthCookie(string token)
         {
+            double minutes;
+            double.TryParse(_configuration["Jwt:ExpiresInMinutes"], out minutes);
             var cookieOptions = new CookieOptions
             {
                 HttpOnly = true,
                 Secure = true,
                 SameSite = SameSiteMode.None,
-                Expires = DateTime.UtcNow.AddHours(1),
+                Expires = DateTime.UtcNow.AddMinutes(minutes),
                 Path = "/"
             };
             Response.Cookies.Append("authToken", token, cookieOptions);
