@@ -12,7 +12,6 @@ using MySqlConnector;
 namespace TMS.API.Controllers
 {
     [ApiController]
-    [EnableRateLimiting("auth")]
     [Route("api/[controller]")]
     public class AuthController : ControllerBase
     {
@@ -29,6 +28,7 @@ namespace TMS.API.Controllers
 
         #region Authentication Endpoints
         [HttpGet("me")]
+        [EnableRateLimiting("auth")]
         [Authorize]
         public IActionResult Me()
         {
@@ -39,6 +39,7 @@ namespace TMS.API.Controllers
         }
 
         [HttpPost("register")]
+        [EnableRateLimiting("auth")]
         public async Task<IActionResult> Register(RegistrationDTO dto)
         {
             try
@@ -61,6 +62,7 @@ namespace TMS.API.Controllers
         }
 
         [HttpPost("login")]
+        [EnableRateLimiting("auth")]
         public async Task<IActionResult> Login(LogInDTO dto)
         {
             try
@@ -90,6 +92,7 @@ namespace TMS.API.Controllers
         }
 
         [HttpPost("verify-email")]
+        [EnableRateLimiting("auth")]
         public async Task<IActionResult> VerifyEmail(VerifyEmailDto dto)
         {
             try
@@ -108,6 +111,7 @@ namespace TMS.API.Controllers
         }
 
         [HttpPost("resend-code")]
+        [EnableRateLimiting("auth")]
         public async Task<IActionResult> ResendCode(ResendVerificationCodeDTO dto)
         {
             try
