@@ -1,6 +1,7 @@
 import type { getThemeClasses } from '../lib/themeClasses';
 import type { Theme } from '../hooks/useTheme';
 import MichelinLogo from '../assets/Michelin-logo.jpg';
+import { Link } from 'react-router-dom';
 
 type Props = {
   classes: ReturnType<typeof getThemeClasses>;
@@ -30,7 +31,7 @@ export default function Header({
   return (
     <header className={`sticky top-0 z-20 border-b ${classes.headerBg}`}>
       <div className="mx-auto flex min-h-20 max-w-7xl items-center justify-between gap-6 px-5 sm:px-8 lg:px-10">
-        <a href="/" className="flex shrink-0 items-center gap-3" aria-label="Michelin TMS home">
+        <Link to="/" className="flex shrink-0 items-center gap-3" aria-label="Michelin TMS home">
           <div className="flex h-14 w-36 shrink-0 items-center justify-center overflow-hidden rounded-sm border border-slate-200 bg-white p-1 shadow-sm">
             <img src={MichelinLogo} alt="Michelin TMS" className="h-full w-full object-contain" />
           </div>
@@ -38,15 +39,37 @@ export default function Header({
             <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-[#183b70]">TMS portal</p>
             <p className="text-xs text-slate-500">Tyre management system</p>
           </div>
-        </a>
+        </Link>
 
         <nav className="hidden items-center gap-7 md:flex" aria-label="Main navigation">
-          <a className="text-sm font-semibold text-[#183b70]" href="/">Home</a>
-          {isLoggedIn && isProductionOperator && <a className="text-sm font-medium text-slate-500 transition hover:text-[#183b70]" href="/my-entrys">My Entrys</a>}
-          {isLoggedIn && isQualitySupervisor && <a className="text-sm font-medium text-slate-500 transition hover:text-[#183b70]" href="/sale-history">Sale History</a>}
-          {isLoggedIn && isQualitySupervisor && <a className="text-sm font-medium text-slate-500 transition hover:text-[#183b70]" href="/production-history">Production History</a>}
-          {isLoggedIn && isQualitySupervisor && <a className="text-sm font-medium text-slate-500 transition hover:text-[#183b70]" href="/audit-log">Audit Log</a>}
-          {isLoggedIn && isBusinessUnitLeader && <a className="text-sm font-medium text-slate-500 transition hover:text-[#183b70]" href="/summary-reports">Summary Reports</a>}
+          <Link className="text-sm font-semibold text-[#183b70]" to="/">
+            Home
+          </Link>
+          {isLoggedIn && isProductionOperator && (
+            <Link className="text-sm font-medium text-slate-500 transition hover:text-[#183b70]" to="/my-entrys">
+              My Entrys
+            </Link>
+          )}
+          {isLoggedIn && isQualitySupervisor && (
+            <Link className="text-sm font-medium text-slate-500 transition hover:text-[#183b70]" to="/sale-history">
+              Sale History
+            </Link>
+          )}
+          {isLoggedIn && isQualitySupervisor && (
+            <Link className="text-sm font-medium text-slate-500 transition hover:text-[#183b70]" to="/production-history">
+              Production History
+            </Link>
+          )}
+          {isLoggedIn && isQualitySupervisor && (
+            <Link className="text-sm font-medium text-slate-500 transition hover:text-[#183b70]" to="/audit-log">
+              Audit Log
+            </Link>
+          )}
+          {isLoggedIn && isBusinessUnitLeader && (
+            <Link className="text-sm font-medium text-slate-500 transition hover:text-[#183b70]" to="/summary-reports">
+              Summary Reports
+            </Link>
+          )}
         </nav>
 
         <div className="flex items-center gap-2 sm:gap-3">
@@ -67,7 +90,7 @@ export default function Header({
                 onClick={() => onOpenAuth('signin')}
                 className="border-b-2 border-transparent px-2 py-2 text-xs font-bold uppercase tracking-[0.08em] text-[#183b70] transition hover:border-[#e4002b] hover:text-[#e4002b]"
               >
-                Sign in
+                Sign up
               </button>
               <button
                 type="button"

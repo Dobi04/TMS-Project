@@ -9,18 +9,7 @@ export function RequireAuth() {
   const { isLogedIn, role } = useAuth();
   const normalizedRole = normalizeRole(role);
 
-  if (!isLogedIn || !['user', 'admin', 'owner'].includes(normalizedRole)) {
-    return <Navigate to="/" replace />;
-  }
-
-  return <Outlet />;
-}
-
-export function RequireAdmin() {
-  const { isLogedIn, role } = useAuth();
-  const normalizedRole = normalizeRole(role);
-
-  if (!isLogedIn || normalizedRole !== 'admin') {
+  if (!isLogedIn || !['productionoperator', 'businessunitleader', 'qualitysupervisor'].includes(normalizedRole)) {
     return <Navigate to="/" replace />;
   }
 
@@ -52,7 +41,7 @@ export function RequireQualitySupervisor() {
 export function RequireBusinessUnitLeader() {
   const { isLogedIn, role } = useAuth();
   const normalizedRole = normalizeRole(role);
-  const isBusinessUnitLeader = ['businessunitleader', 'busisinessunitleader'].includes(normalizedRole);
+  const isBusinessUnitLeader = ['businessunitleader'].includes(normalizedRole);
 
   if (!isLogedIn || !isBusinessUnitLeader) {
     return <Navigate to="/" replace />;

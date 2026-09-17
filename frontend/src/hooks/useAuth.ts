@@ -6,7 +6,7 @@ function getStoredUsername() {
 }
 
 function getStoredRole() {
-  return localStorage.getItem('role') || 'User';
+  return localStorage.getItem('role') || 'Guest';
 }
 
 export function useAuth() {
@@ -30,7 +30,7 @@ export function useAuth() {
     localStorage.removeItem('username');
     localStorage.removeItem('role');
     setUsername('');
-    setRole('User');
+    setRole('Guest');
   }, []);
 
   return { username, role, isLogedIn, refresh, logout };

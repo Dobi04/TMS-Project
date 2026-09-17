@@ -43,7 +43,7 @@ export default function UserPanel({ classes, isCollapsed, isLoggedIn, username, 
         onClick={() => onOpenAuth('signin')}
         className={`w-full rounded-2xl border px-4 py-3 text-sm font-semibold transition ${classes.secondaryButton}`}
       >
-        Sign in
+        Sign up
       </button>
       <button
         type="button"

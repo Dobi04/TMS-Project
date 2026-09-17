@@ -104,7 +104,7 @@ export default function AuthModal({ isOpen, mode, onClose, onModeChange, onAuthS
 
       const response = await apiClient.post('/api/Auth/login', payload);
       localStorage.setItem('username', response.data.username || form.username);
-      localStorage.setItem('role', response.data.role || 'User');
+      localStorage.setItem('role', response.data.role || 'Guest');
       setSuccess('Login successful.');
       setForm({
         name: '',
@@ -137,7 +137,7 @@ export default function AuthModal({ isOpen, mode, onClose, onModeChange, onAuthS
       });
 
       localStorage.setItem('username', response.data.username);
-      localStorage.setItem('role', response.data.role);
+      localStorage.setItem('role', response.data.role || 'Guest');
 
       setStep('success');
       onAuthSuccess?.();
@@ -201,7 +201,7 @@ export default function AuthModal({ isOpen, mode, onClose, onModeChange, onAuthS
                 }`}
                 onClick={() => onModeChange('signin')}
               >
-                Sign in
+                Sign up
               </button>
               <button
                 type="button"
