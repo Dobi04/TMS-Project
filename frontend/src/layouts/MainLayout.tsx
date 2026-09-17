@@ -28,6 +28,7 @@ export default function MainLayout() {
 
   const handleLogout = () => {
     logout();
+    window.location.replace("/");
   };
 
   const handleAuthSuccess = () => {
