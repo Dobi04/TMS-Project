@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using System.Data;
 using System.Security.Claims;
+using MySqlConnector;
 
 namespace TMS.API.Controllers
 {
@@ -26,7 +27,7 @@ namespace TMS.API.Controllers
 
         #region Authentication Endpoints
         [HttpGet("me")]
-        //[Authorize]
+        [Authorize]
         public IActionResult Me()
         {
             var username = User.FindFirstValue(ClaimTypes.Name);
@@ -48,7 +49,7 @@ namespace TMS.API.Controllers
             {
                 return BadRequest(new { message = ex.Message });
             }
-            catch (DbUpdateException)
+            catch (MySqlException ex) when (ex.InnerException is MySqlException { Number: 1062 }) // Duplicate entry error code for MySQL
             {
                 return Ok(new MessageResponseDTO
                 {
@@ -76,7 +77,13 @@ namespace TMS.API.Controllers
         [HttpPost("logout")]
         public IActionResult Logout()
         {
-            Response.Cookies.Delete("authToken");
+            Response.Cookies.Delete("authToken", new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.None,
+                Path = "/"
+            });
             return Ok(new { message = "Logged out successfully." });
         }
 
@@ -123,7 +130,8 @@ namespace TMS.API.Controllers
                 HttpOnly = true,
                 Secure = true,
                 SameSite = SameSiteMode.None,
-                Expires = DateTime.UtcNow.AddHours(1)
+                Expires = DateTime.UtcNow.AddHours(1),
+                Path = "/"
             };
             Response.Cookies.Append("authToken", token, cookieOptions);
         }
