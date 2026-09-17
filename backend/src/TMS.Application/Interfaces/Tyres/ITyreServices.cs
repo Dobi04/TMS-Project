@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using TMS.Application.DTOs.TyreDTOs;
 
-namespace TMS.Application.Interfaces.Project_Functionality
+namespace TMS.Application.Interfaces.Tyres
 {
     public interface ITyreServices
     {

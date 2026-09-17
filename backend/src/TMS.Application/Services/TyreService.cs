@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using System.Text;
 using TMS.Application.DTOs.TyreDTOs;
-using TMS.Application.Interfaces.Project_Functionality;
 using TMS.Application.Interfaces.Repositories;
+using TMS.Application.Interfaces.Tyres;
 using TMS.Domain.Entities;
 
 namespace TMS.Application.Services
