@@ -12,7 +12,7 @@ SLAVE2_PORT=${SLAVE2_PORT:-3308}
 SOURCE_HOST=${SOURCE_HOST:-mysql-master}
 
 # Promenjeno ime baze za novi SaaS
-DB_NAME="excursion_db"
+DB_NAME=${MYSQL_DATABASE:?Set MYSQL_DATABASE in the environment}
 
 M="mysql -h${MYSQL_HOST} -P${MASTER_PORT} -uroot -p${ROOT_PASS} --protocol=TCP --connect-timeout=5"
 S1="mysql -h${MYSQL_HOST} -P${SLAVE1_PORT} -uroot -p${ROOT_PASS} --protocol=TCP --connect-timeout=5"

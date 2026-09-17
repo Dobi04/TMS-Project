@@ -10,7 +10,7 @@ namespace TMS.API.Controllers
 {
     [ApiController]
     [Authorize]
-    [EnableRateLimiting("auth")]
+    [EnableRateLimiting("api")]
     [Route("api/[controller]")]
     public class TyreController : ControllerBase
     {

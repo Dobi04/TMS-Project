@@ -88,6 +88,16 @@ builder.Services.AddRateLimiter(options =>
             QueueLimit = 0
         });
     });
+    options.AddPolicy("api", httpContext =>
+    {
+        var partitionKey = httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+        return RateLimitPartition.GetFixedWindowLimiter(partitionKey, _ => new FixedWindowRateLimiterOptions
+        {
+            PermitLimit = 100,
+            Window = TimeSpan.FromMinutes(1),
+            QueueLimit = 0
+        });
+    });
 });
 #endregion
 

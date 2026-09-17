@@ -27,7 +27,7 @@ namespace TMS.Infrastructure.EmailVerification
                 ?? throw new InvalidOperationException("Smtp username in not configured");
             var password = _configuration["Smtp:Password"]
                 ?? throw new InvalidOperationException("Smtp password in not configured");
-            var form = _configuration["Smtp:Form"] ?? username;
+            var form = _configuration["Smtp:From"] ?? username;
             var enableSsl = bool.Parse(_configuration["Smtp:EnableSsl"] ?? "true");
 
             using var client = new SmtpClient(host, port)
