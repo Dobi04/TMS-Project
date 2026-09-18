@@ -12,17 +12,17 @@ namespace TMS.Infrastructure.Persistence.Configurations
 
             builder.HasKey(sale => sale.Id);
             builder.Property(sale => sale.TyreId).IsRequired();
-            builder.Property(sale => sale.SuperVisorId).IsRequired();
+            builder.Property(sale => sale.RegisteredById).IsRequired().HasColumnName("SuperVisorId");
             builder.Property(sale => sale.QuantitySold).IsRequired();
-            builder.Property(sale => sale.UnitOfMesure).IsRequired().HasMaxLength(20);
+            builder.Property(sale => sale.UnitOfMeasure).IsRequired().HasMaxLength(20).HasColumnName("UnitOfMesure");
             builder.Property(sale => sale.SalePriceByUnit).IsRequired();
             builder.Property(sale => sale.SaleDate).IsRequired();
-            builder.Property(sale => sale.PurcesingCompany).IsRequired().HasMaxLength(150);
+            builder.Property(sale => sale.PurchasingCompany).IsRequired().HasMaxLength(150).HasColumnName("PurcesingCompany");
             builder.Property(sale => sale.DestinationMarket).IsRequired().HasMaxLength(100);
             builder.Property(sale => sale.isActive).IsRequired().HasDefaultValue(true);
 
             builder.HasIndex(sale => sale.TyreId);
-            builder.HasIndex(sale => sale.SuperVisorId);
+            builder.HasIndex(sale => sale.RegisteredById).HasDatabaseName("IX_Sales_SuperVisorId");
         }
     }
 }
