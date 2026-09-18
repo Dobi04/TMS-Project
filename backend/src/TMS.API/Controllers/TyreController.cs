@@ -78,6 +78,21 @@ namespace TMS.API.Controllers
             }
         }
 
+        [HttpDelete("{id:int}")]
+        [Authorize(Roles = "QualitySupervisor")]
+        public async Task<IActionResult> DeleteTyre(int id)
+        {
+            try
+            {
+                await _tyreServices.DeleteTyreAsync(id);
+                return NoContent();
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+        }
+
         #endregion
 
         #region Helpers

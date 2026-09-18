@@ -15,6 +15,7 @@ namespace TMS.Application.Interfaces.Tyres
         #region QualitySupervisor Operations
         Task<List<TyreResponseDTO>> GetAllTyresAsync();
         Task<TyreResponseDTO> UpdateTyreAsync(int id, UpdateTyreDTO dto);
+        Task DeleteTyreAsync(int id);
         #endregion
     }
 }

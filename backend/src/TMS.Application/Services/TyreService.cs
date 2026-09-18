@@ -56,6 +56,16 @@ namespace TMS.Application.Services
             return ToResponseDto(tyre);
 
         }
+
+        public async Task DeleteTyreAsync(int id)
+        {
+            var tyre = await _tyreRepository.FindByIdAsync(id)
+            ?? throw new KeyNotFoundException("Tyre not found.");
+
+            tyre.isActive = false;
+
+            await _tyreRepository.SaveChangesAsync();
+        }
         #endregion
 
         #region Shared Operations
