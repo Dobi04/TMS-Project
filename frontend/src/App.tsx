@@ -12,6 +12,7 @@ import SaleHistoryPage from './pages/SaleHistoryPage';
 import ProductionHistoryPage from './pages/ProductionHistoryPage';
 import AuditLogPage from './pages/AuditLogPage';
 import SummaryReportsPage from './pages/SummaryReportsPage';
+import AllEntriesPage from './pages/AllEntriesPage';
 import { apiClient } from './api/client';
 
 function App() {
@@ -46,6 +47,7 @@ function App() {
 
           <Route element={<RequireBusinessUnitLeader />}>
             <Route path="/summary-reports" element={<SummaryReportsPage />} />
+            <Route path="/all-entries" element={<AllEntriesPage />} />
           </Route>
         </Route>
       </Routes>

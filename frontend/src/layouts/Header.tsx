@@ -70,6 +70,11 @@ export default function Header({
               Summary Reports
             </Link>
           )}
+          {isLoggedIn && isBusinessUnitLeader && (
+            <Link className="text-sm font-medium text-slate-500 transition hover:text-[#183b70]" to="/all-entries">
+              Entry History
+            </Link>
+          )}
         </nav>
 
         <div className="flex items-center gap-2 sm:gap-3">

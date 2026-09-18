@@ -11,6 +11,7 @@ export const navItems: NavItem[] = [
   { label: 'Production History', icon: '◫', to: '/production-history' },
   { label: 'Audit Log', icon: '⌕', to: '/audit-log' },
   { label: 'Summary Reports', icon: '▦', to: '/summary-reports' },
+  { label: 'All Entries', icon: '☰', to: '/all-entries' },
 ];
 
 export function getVisibleNavItems(isLoggedIn: boolean, role: string) {
@@ -27,6 +28,9 @@ export function getVisibleNavItems(isLoggedIn: boolean, role: string) {
       return normalizedRole === 'qualitysupervisor';
     }
     if (item.to === '/summary-reports') {
+      return ['businessunitleader', 'busisinessunitleader'].includes(normalizedRole);
+    }
+    if (item.to === '/all-entries') {
       return ['businessunitleader', 'busisinessunitleader'].includes(normalizedRole);
     }
     return true;
