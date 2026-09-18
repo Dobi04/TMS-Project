@@ -23,11 +23,11 @@ namespace TMS.Infrastructure.Persistence.Configurations.Repositories
             await _appDbContext.Tyres.FirstOrDefaultAsync(t => t.Code == code);
 
         public async Task<Tyre?> FindByIdAsync(int id) =>
-            await _appDbContext.Tyres.FirstOrDefaultAsync(t => t.Id == id);
+            await _appDbContext.Tyres.FirstOrDefaultAsync(t => t.Id == id && t.isActive);
 
         public async Task<List<Tyre>> FindByOperatorIdAsync(int operatorId) =>
             await _appDbContext.Tyres
-                .Where(t => t.OperatorId == operatorId)
+                .Where(t => t.OperatorId == operatorId && t.isActive)
                 .OrderByDescending(t => t.ProductionDate)
                 .ToListAsync();
 

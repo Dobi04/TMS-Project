@@ -52,7 +52,7 @@ namespace TMS.API.Controllers
             {
                 return BadRequest(new { message = ex.Message });
             }
-            catch (MySqlException ex) when (ex.InnerException is MySqlException { Number: 1062 }) // Duplicate entry error code for MySQL
+            catch (DbUpdateException ex) when (ex.InnerException is MySqlException { Number: 1062 }) // Duplicate entry error code for MySQL
             {
                 return Ok(new MessageResponseDTO
                 {

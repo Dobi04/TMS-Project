@@ -43,6 +43,9 @@ public class AuthServices : IAuthServices
         if (!user.isEmailVerified)
             throw new UnauthorizedAccessException("Email is not verified, please verify your email before logging in");
 
+        if (!user.isActive)
+            throw new UnauthorizedAccessException("Wrong username or password");
+
         return new AuthResponseDTO
         {
             Token = _jwtTokenGenerator.GenerateToken(user),
