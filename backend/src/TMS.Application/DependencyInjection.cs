@@ -1,4 +1,5 @@
 ﻿using TMS.Application.Interfaces.Authentication;
+using TMS.Application.Interfaces.Reports;
 using TMS.Application.Interfaces.Sales;
 using TMS.Application.Interfaces.Tyres;
 using TMS.Application.Services;
@@ -14,6 +15,7 @@ namespace TMS.Application
             services.AddScoped<IAuthServices, AuthServices>();
             services.AddScoped<ITyreServices, TyreService>();
             services.AddScoped<ISalesServices, SalesService>();
+            services.AddScoped<IReportsServices, ReportsService>();
 
             return services;
         }

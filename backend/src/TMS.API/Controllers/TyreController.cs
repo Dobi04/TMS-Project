@@ -52,7 +52,7 @@ namespace TMS.API.Controllers
 
         #region QualitySupervisor Endpoint
         [HttpGet]
-        [Authorize(Roles = "QualitySupervisor")]
+        [Authorize(Roles = "QualitySupervisor,BusinessUnitLeader")]
         public async Task<IActionResult> GetAllTyres()
         {
             var tyres = await _tyreServices.GetAllTyresAsync();
