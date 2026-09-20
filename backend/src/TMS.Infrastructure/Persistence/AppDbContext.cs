@@ -14,6 +14,7 @@ namespace TMS.Infrastructure.Persistence
         public DbSet<Machine> Machines => Set<Machine>();
         public DbSet<Tyre> Tyres => Set<Tyre>();
         public DbSet<Sales> Sales => Set<Sales>();
+        public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
         
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

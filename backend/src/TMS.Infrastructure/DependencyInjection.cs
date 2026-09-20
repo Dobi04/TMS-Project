@@ -22,8 +22,13 @@ namespace TMS.Infrastructure
             var connectionString = configuration.GetConnectionString("DefaultConnection")
                 ?? throw new InvalidOperationException("DefaultConnection is not configured.");
 
-            services.AddDbContext<AppDbContext>(options =>
-                options.UseMySql(connectionString, new MySqlServerVersion(new Version(8, 0, 0))));
+            services.AddDbContext<AppDbContext>((serviceProvider, options) =>
+            {
+                options.UseMySql(connectionString, new MySqlServerVersion(new Version(8, 0, 0)));
+                options.AddInterceptors(serviceProvider.GetRequiredService<AuditSaveChangesInterceptor>());
+            });
+
+            services.AddScoped<AuditSaveChangesInterceptor>();
 
             services.AddScoped<IPasswordHasher, PasswordHasher>();
             services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
@@ -32,6 +37,7 @@ namespace TMS.Infrastructure
 
             services.AddScoped<ITyreRepository, TyreRepository>();
             services.AddScoped<ISalesRepository, SalesRepository>();
+            services.AddScoped<IAuditLogRepository, AuditLogRepository>();
 
             return services;
         }
