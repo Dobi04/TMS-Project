@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using TMS.Application.DTOs.TyreDTOs;
+using TMS.Application.DTOs.Common;
 using TMS.Application.Interfaces.Repositories;
 using TMS.Application.Interfaces.Tyres;
 using TMS.Domain.Entities;
@@ -22,18 +23,16 @@ namespace TMS.Application.Services
         #endregion
 
         #region ProductionOperator Operations Only
-        public async Task<List<TyreResponseDTO>> GetMyTyresAsync(int operatorId)
+        public async Task<PagedResponseDTO<TyreResponseDTO>> GetMyTyresAsync(int operatorId, TyreFilterDTO filter)
         {
-            var tyres = await _tyreRepository.FindByOperatorIdAsync(operatorId);
-            return tyres.Select(ToResponseDto).ToList();
+            return await GetPagedResponseAsync(filter, operatorId, activeOnly: true);
         }
         #endregion
 
         #region QualitySupervisor Operation Only
-        public async Task<List<TyreResponseDTO>> GetAllTyresAsync()
+        public async Task<PagedResponseDTO<TyreResponseDTO>> GetAllTyresAsync(TyreFilterDTO filter)
         {
-            var tyres = await _tyreRepository.GetAllAsync();
-            return tyres.Select(ToResponseDto).ToList();
+            return await GetPagedResponseAsync(filter);
         }
 
         public async Task<TyreResponseDTO> UpdateTyreAsync(int id, UpdateTyreDTO dto)
@@ -102,6 +101,27 @@ namespace TMS.Application.Services
         #endregion
 
         #region Helpers
+        private async Task<PagedResponseDTO<TyreResponseDTO>> GetPagedResponseAsync(TyreFilterDTO filter, int? operatorScope = null, bool activeOnly = false)
+        {
+            if (filter.DateFrom.HasValue && filter.DateTo.HasValue && filter.DateFrom.Value.Date > filter.DateTo.Value.Date)
+                throw new InvalidOperationException("Date from must be on or before date to.");
+
+            var page = Math.Max(filter.Page, 1);
+            var pageSize = filter.PageSize <= 0
+                ? PaginationConstants.DefaultPageSize
+                : Math.Clamp(filter.PageSize, 1, PaginationConstants.MaxPageSize);
+            var result = await _tyreRepository.GetPagedAsync(filter, operatorScope, activeOnly);
+
+            return new PagedResponseDTO<TyreResponseDTO>
+            {
+                Items = result.Items.Select(ToResponseDto).ToList(),
+                TotalCount = result.TotalCount,
+                Page = page,
+                PageSize = pageSize,
+                TotalPages = result.TotalCount == 0 ? 0 : (int)Math.Ceiling(result.TotalCount / (double)pageSize)
+            };
+        }
+
         private static TyreResponseDTO ToResponseDto(Tyre tyre) => new()
         {
             Id = tyre.Id,

@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using TMS.Application.DTOs.SalesDTOs;
+using TMS.Application.DTOs.Common;
 using TMS.Domain.Entities;
 using SaleEntity = TMS.Domain.Entities.Sales;
 
@@ -8,8 +10,10 @@ namespace TMS.Application.Interfaces.Repositories
     {
         #region Query Methods
         Task<SaleEntity?> FindByIdAsync(int id);
-        Task<List<SaleEntity>> FindByRegisteredByIdAsync(int registeredById);
-        Task<List<SaleEntity>> GetAllAsync();
+        Task<(List<SaleResponseDTO> Items, int TotalCount)> GetPagedAsync(
+            SaleFilterDTO filter,
+            int? registeredByScope = null,
+            bool activeOnly = false);
         Task<int> GetTotalSoldForTyreAsync(int tyreId);
         #endregion
 

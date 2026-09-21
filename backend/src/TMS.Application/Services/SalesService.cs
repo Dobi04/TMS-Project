@@ -1,4 +1,5 @@
 using TMS.Application.DTOs.SalesDTOs;
+using TMS.Application.DTOs.Common;
 using TMS.Application.Interfaces.Repositories;
 using TMS.Application.Interfaces.Sales;
 using TMS.Domain.Entities;
@@ -20,10 +21,9 @@ namespace TMS.Application.Services
         #endregion
 
         #region QualitySupervisor Operations
-        public async Task<List<SaleResponseDTO>> GetMySalesAsync(int registeredById)
+        public async Task<PagedResponseDTO<SaleResponseDTO>> GetMySalesAsync(int registeredById, SaleFilterDTO filter)
         {
-            var sales = await _salesRepository.FindByRegisteredByIdAsync(registeredById);
-            return await ToResponseDtosAsync(sales);
+            return await GetPagedResponseAsync(filter, registeredById, activeOnly: true);
         }
 
         public async Task<SaleResponseDTO> CreateSaleAsync(int registeredById, CreateSaleDTO dto)
@@ -58,25 +58,32 @@ namespace TMS.Application.Services
         #endregion
 
         #region BusinessUnitLeader Operations
-        public async Task<List<SaleResponseDTO>> GetAllSalesAsync()
+        public async Task<PagedResponseDTO<SaleResponseDTO>> GetAllSalesAsync(SaleFilterDTO filter)
         {
-            var sales = await _salesRepository.GetAllAsync();
-            return await ToResponseDtosAsync(sales);
+            return await GetPagedResponseAsync(filter);
         }
         #endregion
 
         #region Helpers
-        private async Task<List<SaleResponseDTO>> ToResponseDtosAsync(List<SaleEntity> sales)
+        private async Task<PagedResponseDTO<SaleResponseDTO>> GetPagedResponseAsync(SaleFilterDTO filter, int? registeredByScope = null, bool activeOnly = false)
         {
-            var response = new List<SaleResponseDTO>();
+            if (filter.DateFrom.HasValue && filter.DateTo.HasValue && filter.DateFrom.Value.Date > filter.DateTo.Value.Date)
+                throw new InvalidOperationException("Date from must be on or before date to.");
 
-            foreach (var sale in sales)
+            var page = Math.Max(filter.Page, 1);
+            var pageSize = filter.PageSize <= 0
+                ? PaginationConstants.DefaultPageSize
+                : Math.Clamp(filter.PageSize, 1, PaginationConstants.MaxPageSize);
+            var result = await _salesRepository.GetPagedAsync(filter, registeredByScope, activeOnly);
+
+            return new PagedResponseDTO<SaleResponseDTO>
             {
-                var tyre = await _tyreRepository.FindByIdAsync(sale.TyreId);
-                response.Add(ToResponseDto(sale, tyre?.Code ?? string.Empty));
-            }
-
-            return response;
+                Items = result.Items,
+                TotalCount = result.TotalCount,
+                Page = page,
+                PageSize = pageSize,
+                TotalPages = result.TotalCount == 0 ? 0 : (int)Math.Ceiling(result.TotalCount / (double)pageSize)
+            };
         }
 
         private static SaleResponseDTO ToResponseDto(SaleEntity sale, string tyreCode) => new()

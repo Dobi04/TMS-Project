@@ -25,10 +25,17 @@ namespace TMS.API.Controllers
         #region QualitySupervisor Endpoint
         [HttpGet("mine")]
         [Authorize(Roles = "QualitySupervisor")]
-        public async Task<IActionResult> GetMySales()
+        public async Task<IActionResult> GetMySales([FromQuery] SaleFilterDTO filter)
         {
-            var sales = await _salesServices.GetMySalesAsync(GetCurrentUserId());
-            return Ok(sales);
+            try
+            {
+                var sales = await _salesServices.GetMySalesAsync(GetCurrentUserId(), filter);
+                return Ok(sales);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
 
         [HttpPost]
@@ -54,10 +61,17 @@ namespace TMS.API.Controllers
         #region BusinessUnitLeader Endpoint
         [HttpGet]
         [Authorize(Roles = "BusinessUnitLeader")]
-        public async Task<IActionResult> GetAllSales()
+        public async Task<IActionResult> GetAllSales([FromQuery] SaleFilterDTO filter)
         {
-            var sales = await _salesServices.GetAllSalesAsync();
-            return Ok(sales);
+            try
+            {
+                var sales = await _salesServices.GetAllSalesAsync(filter);
+                return Ok(sales);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
         #endregion
 

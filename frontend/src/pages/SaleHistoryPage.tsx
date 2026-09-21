@@ -1,18 +1,15 @@
 import { useEffect, useState } from 'react';
 import { apiClient } from '../api/client';
-
-type Sale = {
-  id: number;
-  tyreCode: string;
-  quantitySold: number;
-  unitOfMeasure: string;
-  salePriceByUnit: number;
-  saleDate: string;
-  destinationMarket: string;
-  purchasingCompany: string;
-  registeredById: number;
-  isActive: boolean;
-};
+import { getMySales } from '../api/sales';
+import FilterBar from '../components/FilterBar';
+import FilterField from '../components/FilterField';
+import Pagination from '../components/Pagination';
+import { usePagedQuery } from '../hooks/usePagedQuery';
+import { useDebouncedValue } from '../hooks/useDebouncedValue';
+import { formatDate } from '../lib/format';
+import { getErrorMessage } from '../lib/http';
+import { PAGE_SIZE } from '../lib/pagination';
+import type { Sale } from '../types/sale';
 
 type SaleForm = {
   tyreCode: string;
@@ -34,63 +31,32 @@ const emptyForm: SaleForm = {
   purchasingCompany: '',
 };
 
-function getErrorMessage(error: unknown, fallback: string) {
-  if (error && typeof error === 'object' && 'response' in error) {
-    const response = error.response;
-    if (response && typeof response === 'object' && 'data' in response) {
-      const data = response.data;
-      if (data && typeof data === 'object' && 'message' in data && typeof data.message === 'string') {
-        return data.message;
-      }
-    }
-  }
-
-  return fallback;
-}
-
-function formatDate(value: string) {
-  const date = new Date(value);
-  return Number.isNaN(date.getTime())
-    ? 'Not available'
-    : new Intl.DateTimeFormat(undefined, { day: '2-digit', month: 'short', year: 'numeric' }).format(date);
-}
-
 export default function SaleHistoryPage() {
-  const [sales, setSales] = useState<Sale[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [loadError, setLoadError] = useState('');
+  const [tyreCodeFilter, setTyreCodeFilter] = useState('');
+  const [destinationMarketFilter, setDestinationMarketFilter] = useState('');
+  const [purchasingCompanyFilter, setPurchasingCompanyFilter] = useState('');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [form, setForm] = useState<SaleForm>(emptyForm);
   const [validationError, setValidationError] = useState('');
   const [submitError, setSubmitError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  useEffect(() => {
-    let isMounted = true;
-
-    apiClient
-      .get<Sale[]>('/api/Sales/mine')
-      .then((response) => {
-        if (isMounted) {
-          setSales(response.data);
-          setLoadError('');
-        }
-      })
-      .catch((error: unknown) => {
-        if (isMounted) {
-          setLoadError(getErrorMessage(error, 'Could not load your sales.'));
-        }
-      })
-      .finally(() => {
-        if (isMounted) {
-          setIsLoading(false);
-        }
-      });
-
-    return () => {
-      isMounted = false;
-    };
-  }, []);
+  const debouncedTyreCode = useDebouncedValue(tyreCodeFilter);
+  const debouncedDestinationMarket = useDebouncedValue(destinationMarketFilter);
+  const debouncedPurchasingCompany = useDebouncedValue(purchasingCompanyFilter);
+  const query = usePagedQuery(
+    {
+      tyreCode: debouncedTyreCode || undefined,
+      destinationMarket: debouncedDestinationMarket || undefined,
+      purchasingCompany: debouncedPurchasingCompany || undefined,
+      dateFrom: dateFrom || undefined,
+      dateTo: dateTo || undefined,
+    },
+    PAGE_SIZE,
+    getMySales,
+  );
+  const loadError = query.error ? getErrorMessage(query.error, 'Could not load your sales.') : '';
 
   useEffect(() => {
     if (!isModalOpen) {
@@ -162,7 +128,7 @@ export default function SaleHistoryPage() {
     setIsSubmitting(true);
 
     try {
-      const response = await apiClient.post<Sale>('/api/Sales', {
+      await apiClient.post<Sale>('/api/Sales', {
         tyreCode: form.tyreCode.trim(),
         quantitySold,
         unitOfMeasure: form.unitOfMeasure.trim(),
@@ -172,13 +138,22 @@ export default function SaleHistoryPage() {
         purchasingCompany: form.purchasingCompany.trim(),
       });
 
-      setSales((current) => [...current, response.data]);
+      query.setPage(1);
+      query.reload();
       setIsModalOpen(false);
     } catch (error: unknown) {
       setSubmitError(getErrorMessage(error, 'Could not register the sale.'));
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const clearFilters = () => {
+    setTyreCodeFilter('');
+    setDestinationMarketFilter('');
+    setPurchasingCompanyFilter('');
+    setDateFrom('');
+    setDateTo('');
   };
 
   return (
@@ -199,21 +174,39 @@ export default function SaleHistoryPage() {
         </button>
       </div>
 
+      <FilterBar onClear={clearFilters}>
+        <FilterField label="Tyre code">
+          <input value={tyreCodeFilter} onChange={(event) => setTyreCodeFilter(event.target.value)} placeholder="Any code" className="border border-slate-300 bg-white px-3 py-2 text-sm font-normal normal-case tracking-normal text-slate-700 outline-none placeholder:text-slate-400 focus:border-[#183b70]" />
+        </FilterField>
+        <FilterField label="Destination market">
+          <input value={destinationMarketFilter} onChange={(event) => setDestinationMarketFilter(event.target.value)} placeholder="Any market" className="border border-slate-300 bg-white px-3 py-2 text-sm font-normal normal-case tracking-normal text-slate-700 outline-none placeholder:text-slate-400 focus:border-[#183b70]" />
+        </FilterField>
+        <FilterField label="Purchasing company">
+          <input value={purchasingCompanyFilter} onChange={(event) => setPurchasingCompanyFilter(event.target.value)} placeholder="Any company" className="border border-slate-300 bg-white px-3 py-2 text-sm font-normal normal-case tracking-normal text-slate-700 outline-none placeholder:text-slate-400 focus:border-[#183b70]" />
+        </FilterField>
+        <FilterField label="From">
+          <input type="date" value={dateFrom} onChange={(event) => setDateFrom(event.target.value)} className="border border-slate-300 bg-white px-3 py-2 text-sm font-normal normal-case tracking-normal text-slate-700 outline-none focus:border-[#183b70]" />
+        </FilterField>
+        <FilterField label="To">
+          <input type="date" value={dateTo} onChange={(event) => setDateTo(event.target.value)} className="border border-slate-300 bg-white px-3 py-2 text-sm font-normal normal-case tracking-normal text-slate-700 outline-none focus:border-[#183b70]" />
+        </FilterField>
+      </FilterBar>
+
       <div className="mt-6 overflow-hidden border border-slate-200">
-        {isLoading && <p className="p-8 text-center text-sm text-slate-500">Loading your sales...</p>}
-        {!isLoading && loadError && (
+        {query.isLoading && <p className="p-8 text-center text-sm text-slate-500">Loading your sales...</p>}
+        {!query.isLoading && loadError && (
           <div className="p-8 text-center" role="alert">
             <p className="font-semibold text-[#e4002b]">{loadError}</p>
             <p className="mt-2 text-sm text-slate-500">Refresh the page and try again.</p>
           </div>
         )}
-        {!isLoading && !loadError && sales.length === 0 && (
+        {!query.isLoading && !loadError && query.items.length === 0 && (
           <div className="p-10 text-center">
-            <p className="text-lg font-bold text-[#183b70]">No sales yet</p>
-            <p className="mt-2 text-sm text-slate-500">Register your first sale to see it here.</p>
+            <p className="text-lg font-bold text-[#183b70]">{tyreCodeFilter || destinationMarketFilter || purchasingCompanyFilter || dateFrom || dateTo ? 'No sales match these filters' : 'No sales yet'}</p>
+            <p className="mt-2 text-sm text-slate-500">{tyreCodeFilter || destinationMarketFilter || purchasingCompanyFilter || dateFrom || dateTo ? 'Clear the filters to see all your sales.' : 'Register your first sale to see it here.'}</p>
           </div>
         )}
-        {!isLoading && !loadError && sales.length > 0 && (
+        {!query.isLoading && !loadError && query.items.length > 0 && (
           <div className="overflow-x-auto">
             <table className="min-w-270 w-full text-left text-sm">
               <thead className="bg-[#183b70] text-xs uppercase tracking-wider text-white">
@@ -228,7 +221,7 @@ export default function SaleHistoryPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200">
-                {sales.map((sale) => (
+                {query.items.map((sale) => (
                   <tr key={sale.id} className="transition hover:bg-[#f5f7fa]">
                     <td className="px-4 py-4 font-semibold text-[#183b70]">{sale.tyreCode}</td>
                     <td className="px-4 py-4 text-slate-600">{sale.quantitySold.toLocaleString()}</td>
@@ -244,6 +237,8 @@ export default function SaleHistoryPage() {
           </div>
         )}
       </div>
+
+      {!query.isLoading && !loadError && <Pagination page={query.page} totalPages={query.totalPages} totalCount={query.totalCount} pageSize={PAGE_SIZE} onPageChange={query.setPage} />}
 
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-950/70 p-4 backdrop-blur-sm md:items-center" onClick={closeModal}>

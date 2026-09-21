@@ -1,8 +1,10 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using TMS.Application;
 using System;
 using System.Collections.Generic;
 using System.Text;
 using TMS.Application.DTOs.ReportDTOs;
+using TMS.Application.DTOs.TyreDTOs;
 using TMS.Application.Interfaces.Repositories;
 using TMS.Domain.Entities;
 
@@ -26,16 +28,53 @@ namespace TMS.Infrastructure.Persistence.Configurations.Repositories
         public async Task<Tyre?> FindByIdAsync(int id) =>
             await _appDbContext.Tyres.FirstOrDefaultAsync(t => t.Id == id && t.IsActive);
 
-        public async Task<List<Tyre>> FindByOperatorIdAsync(int operatorId) =>
-            await _appDbContext.Tyres
-                .Where(t => t.OperatorId == operatorId && t.IsActive)
+        public async Task<(List<Tyre> Items, int TotalCount)> GetPagedAsync(
+            TyreFilterDTO filter,
+            int? operatorScope = null,
+            bool activeOnly = false)
+        {
+            var query = _appDbContext.Tyres.AsQueryable();
+
+            if (operatorScope.HasValue)
+                query = query.Where(t => t.OperatorId == operatorScope.Value);
+
+            if (activeOnly)
+                query = query.Where(t => t.IsActive);
+            else if (filter.IsActive.HasValue)
+                query = query.Where(t => t.IsActive == filter.IsActive.Value);
+
+            if (!string.IsNullOrWhiteSpace(filter.Code))
+                query = query.Where(t => t.Code.Contains(filter.Code));
+
+            if (filter.OperatorId.HasValue && !operatorScope.HasValue)
+                query = query.Where(t => t.OperatorId == filter.OperatorId.Value);
+
+            if (filter.Shift.HasValue)
+                query = query.Where(t => t.ProductionShift == filter.Shift.Value);
+
+            if (filter.MachineNumber.HasValue)
+                query = query.Where(t => t.MachineNumber == filter.MachineNumber.Value);
+
+            if (filter.DateFrom.HasValue)
+                query = query.Where(t => t.ProductionDate >= filter.DateFrom.Value.Date);
+
+            if (filter.DateTo.HasValue)
+                query = query.Where(t => t.ProductionDate < filter.DateTo.Value.Date.AddDays(1));
+
+            var totalCount = await query.CountAsync();
+            var page = Math.Max(filter.Page, 1);
+            var pageSize = filter.PageSize <= 0
+                ? PaginationConstants.DefaultPageSize
+                : Math.Clamp(filter.PageSize, 1, PaginationConstants.MaxPageSize);
+            var items = await query
                 .OrderByDescending(t => t.ProductionDate)
+                .ThenByDescending(t => t.Id)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
                 .ToListAsync();
 
-        public async Task<List<Tyre>> GetAllAsync() =>
-            await _appDbContext.Tyres
-                .OrderByDescending(t => t.ProductionDate)
-                .ToListAsync();
+            return (items, totalCount);
+        }
         #endregion
 
         #region Reporting Methods

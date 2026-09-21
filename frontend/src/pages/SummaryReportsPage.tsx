@@ -1,5 +1,12 @@
 import { useEffect, useState } from 'react';
 import { apiClient } from '../api/client';
+import FilterBar from '../components/FilterBar';
+import FilterField from '../components/FilterField';
+import Pagination from '../components/Pagination';
+import { useClientPagedList } from '../hooks/useClientPagedList';
+import { formatDate } from '../lib/format';
+import { getErrorMessage } from '../lib/http';
+import { PAGE_SIZE } from '../lib/pagination';
 
 type ProductionByDay = {
   date: string;
@@ -28,27 +35,6 @@ type StockBalance = {
   stockBalance: number;
 };
 
-function getErrorMessage(error: unknown, fallback: string) {
-  if (error && typeof error === 'object' && 'response' in error) {
-    const response = error.response;
-    if (response && typeof response === 'object' && 'data' in response) {
-      const data = response.data;
-      if (data && typeof data === 'object' && 'message' in data && typeof data.message === 'string') {
-        return data.message;
-      }
-    }
-  }
-
-  return fallback;
-}
-
-function formatDate(value: string) {
-  const date = new Date(value);
-  return Number.isNaN(date.getTime())
-    ? 'Not available'
-    : new Intl.DateTimeFormat(undefined, { day: '2-digit', month: 'short', year: 'numeric' }).format(date);
-}
-
 function LoadingState({ message }: { message: string }) {
   return <p className="p-8 text-center text-sm text-slate-500">{message}</p>;
 }
@@ -73,6 +59,20 @@ export default function SummaryReportsPage() {
   const [stockDate, setStockDate] = useState(new Date().toISOString().slice(0, 10));
   const [stockLoading, setStockLoading] = useState(true);
   const [stockError, setStockError] = useState('');
+  const [dayFrom, setDayFrom] = useState('');
+  const [dayTo, setDayTo] = useState('');
+  const [shiftFilter, setShiftFilter] = useState('');
+  const [machineFilter, setMachineFilter] = useState('');
+  const [operatorFilter, setOperatorFilter] = useState('');
+  const [stockCodeFilter, setStockCodeFilter] = useState('');
+  const dayQuery = useClientPagedList(productionByDay, (report) => {
+    const date = report.date.slice(0, 10);
+    return (!dayFrom || date >= dayFrom) && (!dayTo || date <= dayTo);
+  }, `${dayFrom}|${dayTo}`);
+  const shiftQuery = useClientPagedList(productionByShift, (report) => !shiftFilter || report.shift.toLowerCase().includes(shiftFilter.toLowerCase()), shiftFilter);
+  const machineQuery = useClientPagedList(productionByMachine, (report) => !machineFilter || String(report.machineNumber).includes(machineFilter), machineFilter);
+  const operatorQuery = useClientPagedList(productionByOperator, (report) => !operatorFilter || String(report.operatorId).includes(operatorFilter), operatorFilter);
+  const stockQuery = useClientPagedList(stockBalance, (stock) => !stockCodeFilter || stock.tyreCode.toLowerCase().includes(stockCodeFilter.toLowerCase()), stockCodeFilter);
 
   useEffect(() => {
     let isMounted = true;
@@ -141,32 +141,43 @@ export default function SummaryReportsPage() {
         {!reportsLoading && reportsError && <ErrorState message={reportsError} />}
         {!reportsLoading && !reportsError && (
           <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
-            <ReportSection title="Production By Day" isEmpty={productionByDay.length === 0}>
+            <ReportSection title="Production By Day" isEmpty={dayQuery.totalCount === 0}>
+              <FilterBar onClear={() => { setDayFrom(''); setDayTo(''); }}>
+                <FilterField label="From"><input type="date" value={dayFrom} onChange={(event) => setDayFrom(event.target.value)} className="border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-[#183b70]" /></FilterField>
+                <FilterField label="To"><input type="date" value={dayTo} onChange={(event) => setDayTo(event.target.value)} className="border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-[#183b70]" /></FilterField>
+              </FilterBar>
               <table className="min-w-120 w-full text-left text-sm">
                 <thead className="bg-[#183b70] text-xs uppercase tracking-wider text-white"><tr><th className="px-4 py-4 font-bold">Date</th><th className="px-4 py-4 font-bold">Total Quantity Produced</th></tr></thead>
-                <tbody className="divide-y divide-slate-200">{productionByDay.map((report) => <tr key={report.date} className="transition hover:bg-[#f5f7fa]"><td className="px-4 py-4 font-semibold text-[#183b70]">{formatDate(report.date)}</td><td className="px-4 py-4 text-slate-600">{report.totalQuantityProduced.toLocaleString()}</td></tr>)}</tbody>
+                <tbody className="divide-y divide-slate-200">{dayQuery.items.map((report) => <tr key={report.date} className="transition hover:bg-[#f5f7fa]"><td className="px-4 py-4 font-semibold text-[#183b70]">{formatDate(report.date)}</td><td className="px-4 py-4 text-slate-600">{report.totalQuantityProduced.toLocaleString()}</td></tr>)}</tbody>
               </table>
+              <Pagination page={dayQuery.page} totalPages={dayQuery.totalPages} totalCount={dayQuery.totalCount} pageSize={PAGE_SIZE} onPageChange={dayQuery.setPage} />
             </ReportSection>
 
-            <ReportSection title="Production By Shift" isEmpty={productionByShift.length === 0}>
+            <ReportSection title="Production By Shift" isEmpty={shiftQuery.totalCount === 0}>
+              <FilterBar onClear={() => setShiftFilter('')}><FilterField label="Shift"><input value={shiftFilter} onChange={(event) => setShiftFilter(event.target.value)} placeholder="Any shift" className="border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 outline-none placeholder:text-slate-400 focus:border-[#183b70]" /></FilterField></FilterBar>
               <table className="min-w-100 w-full text-left text-sm">
                 <thead className="bg-[#183b70] text-xs uppercase tracking-wider text-white"><tr><th className="px-4 py-4 font-bold">Shift</th><th className="px-4 py-4 font-bold">Total Quantity Produced</th></tr></thead>
-                <tbody className="divide-y divide-slate-200">{productionByShift.map((report) => <tr key={report.shift} className="transition hover:bg-[#f5f7fa]"><td className="px-4 py-4 font-semibold text-[#183b70]">{report.shift}</td><td className="px-4 py-4 text-slate-600">{report.totalQuantityProduced.toLocaleString()}</td></tr>)}</tbody>
+                <tbody className="divide-y divide-slate-200">{shiftQuery.items.map((report) => <tr key={report.shift} className="transition hover:bg-[#f5f7fa]"><td className="px-4 py-4 font-semibold text-[#183b70]">{report.shift}</td><td className="px-4 py-4 text-slate-600">{report.totalQuantityProduced.toLocaleString()}</td></tr>)}</tbody>
               </table>
+              <Pagination page={shiftQuery.page} totalPages={shiftQuery.totalPages} totalCount={shiftQuery.totalCount} pageSize={PAGE_SIZE} onPageChange={shiftQuery.setPage} />
             </ReportSection>
 
-            <ReportSection title="Production By Machine" isEmpty={productionByMachine.length === 0}>
+            <ReportSection title="Production By Machine" isEmpty={machineQuery.totalCount === 0}>
+              <FilterBar onClear={() => setMachineFilter('')}><FilterField label="Machine number"><input value={machineFilter} onChange={(event) => setMachineFilter(event.target.value.replace(/\D/g, ''))} inputMode="numeric" placeholder="Any machine" className="border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 outline-none placeholder:text-slate-400 focus:border-[#183b70]" /></FilterField></FilterBar>
               <table className="min-w-100 w-full text-left text-sm">
                 <thead className="bg-[#183b70] text-xs uppercase tracking-wider text-white"><tr><th className="px-4 py-4 font-bold">Machine Number</th><th className="px-4 py-4 font-bold">Total Quantity Produced</th></tr></thead>
-                <tbody className="divide-y divide-slate-200">{productionByMachine.map((report) => <tr key={report.machineNumber} className="transition hover:bg-[#f5f7fa]"><td className="px-4 py-4 font-semibold text-[#183b70]">{report.machineNumber}</td><td className="px-4 py-4 text-slate-600">{report.totalQuantityProduced.toLocaleString()}</td></tr>)}</tbody>
+                <tbody className="divide-y divide-slate-200">{machineQuery.items.map((report) => <tr key={report.machineNumber} className="transition hover:bg-[#f5f7fa]"><td className="px-4 py-4 font-semibold text-[#183b70]">{report.machineNumber}</td><td className="px-4 py-4 text-slate-600">{report.totalQuantityProduced.toLocaleString()}</td></tr>)}</tbody>
               </table>
+              <Pagination page={machineQuery.page} totalPages={machineQuery.totalPages} totalCount={machineQuery.totalCount} pageSize={PAGE_SIZE} onPageChange={machineQuery.setPage} />
             </ReportSection>
 
-            <ReportSection title="Production By Operator" isEmpty={productionByOperator.length === 0}>
+            <ReportSection title="Production By Operator" isEmpty={operatorQuery.totalCount === 0}>
+              <FilterBar onClear={() => setOperatorFilter('')}><FilterField label="Operator ID"><input value={operatorFilter} onChange={(event) => setOperatorFilter(event.target.value.replace(/\D/g, ''))} inputMode="numeric" placeholder="Any operator" className="border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 outline-none placeholder:text-slate-400 focus:border-[#183b70]" /></FilterField></FilterBar>
               <table className="min-w-100 w-full text-left text-sm">
                 <thead className="bg-[#183b70] text-xs uppercase tracking-wider text-white"><tr><th className="px-4 py-4 font-bold">Operator Id</th><th className="px-4 py-4 font-bold">Total Quantity Produced</th></tr></thead>
-                <tbody className="divide-y divide-slate-200">{productionByOperator.map((report) => <tr key={report.operatorId} className="transition hover:bg-[#f5f7fa]"><td className="px-4 py-4 font-semibold text-[#183b70]">{report.operatorId}</td><td className="px-4 py-4 text-slate-600">{report.totalQuantityProduced.toLocaleString()}</td></tr>)}</tbody>
+                <tbody className="divide-y divide-slate-200">{operatorQuery.items.map((report) => <tr key={report.operatorId} className="transition hover:bg-[#f5f7fa]"><td className="px-4 py-4 font-semibold text-[#183b70]">{report.operatorId}</td><td className="px-4 py-4 text-slate-600">{report.totalQuantityProduced.toLocaleString()}</td></tr>)}</tbody>
               </table>
+              <Pagination page={operatorQuery.page} totalPages={operatorQuery.totalPages} totalCount={operatorQuery.totalCount} pageSize={PAGE_SIZE} onPageChange={operatorQuery.setPage} />
             </ReportSection>
           </div>
         )}
@@ -179,10 +190,12 @@ export default function SummaryReportsPage() {
               <button type="button" onClick={() => void loadStockBalance()} disabled={stockLoading || !stockDate} className="bg-[#e4002b] px-4 py-2.5 text-sm font-bold uppercase tracking-wider text-white transition hover:bg-[#b90024] disabled:cursor-not-allowed disabled:opacity-60">{stockLoading ? 'Loading...' : 'Refresh'}</button>
             </div>
           </div>
+          <FilterBar onClear={() => setStockCodeFilter('')}><FilterField label="Tyre code"><input value={stockCodeFilter} onChange={(event) => setStockCodeFilter(event.target.value)} placeholder="Any code" className="border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 outline-none placeholder:text-slate-400 focus:border-[#183b70]" /></FilterField></FilterBar>
           {stockLoading && <LoadingState message="Loading stock balance..." />}
           {!stockLoading && stockError && <ErrorState message={stockError} />}
-          {!stockLoading && !stockError && stockBalance.length === 0 && <p className="p-10 text-center text-sm text-slate-500">No stock balance data for this date.</p>}
-          {!stockLoading && !stockError && stockBalance.length > 0 && <div className="overflow-x-auto"><table className="min-w-150 w-full text-left text-sm"><thead className="bg-[#183b70] text-xs uppercase tracking-wider text-white"><tr><th className="px-4 py-4 font-bold">Tyre Code</th><th className="px-4 py-4 font-bold">Total Produced</th><th className="px-4 py-4 font-bold">Total Sold</th><th className="px-4 py-4 font-bold">Stock Balance</th></tr></thead><tbody className="divide-y divide-slate-200">{stockBalance.map((stock) => <tr key={stock.tyreCode} className="transition hover:bg-[#f5f7fa]"><td className="px-4 py-4 font-semibold text-[#183b70]">{stock.tyreCode}</td><td className="px-4 py-4 text-slate-600">{stock.totalProduced.toLocaleString()}</td><td className="px-4 py-4 text-slate-600">{stock.totalSold.toLocaleString()}</td><td className={`px-4 py-4 font-bold ${stock.stockBalance < 0 ? 'text-[#e4002b]' : 'text-slate-600'}`}>{stock.stockBalance.toLocaleString()}</td></tr>)}</tbody></table></div>}
+          {!stockLoading && !stockError && stockQuery.totalCount === 0 && <p className="p-10 text-center text-sm text-slate-500">{stockCodeFilter ? 'No stock balance entries match this filter.' : 'No stock balance data for this date.'}</p>}
+          {!stockLoading && !stockError && stockQuery.totalCount > 0 && <div className="overflow-x-auto"><table className="min-w-150 w-full text-left text-sm"><thead className="bg-[#183b70] text-xs uppercase tracking-wider text-white"><tr><th className="px-4 py-4 font-bold">Tyre Code</th><th className="px-4 py-4 font-bold">Total Produced</th><th className="px-4 py-4 font-bold">Total Sold</th><th className="px-4 py-4 font-bold">Stock Balance</th></tr></thead><tbody className="divide-y divide-slate-200">{stockQuery.items.map((stock) => <tr key={stock.tyreCode} className="transition hover:bg-[#f5f7fa]"><td className="px-4 py-4 font-semibold text-[#183b70]">{stock.tyreCode}</td><td className="px-4 py-4 text-slate-600">{stock.totalProduced.toLocaleString()}</td><td className="px-4 py-4 text-slate-600">{stock.totalSold.toLocaleString()}</td><td className={`px-4 py-4 font-bold ${stock.stockBalance < 0 ? 'text-[#e4002b]' : 'text-slate-600'}`}>{stock.stockBalance.toLocaleString()}</td></tr>)}</tbody></table></div>}
+          {!stockLoading && !stockError && <Pagination page={stockQuery.page} totalPages={stockQuery.totalPages} totalCount={stockQuery.totalCount} pageSize={PAGE_SIZE} onPageChange={stockQuery.setPage} />}
         </section>
       </div>
     </section>

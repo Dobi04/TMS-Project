@@ -1,29 +1,12 @@
-import { useEffect, useState, type ChangeEvent, type ReactNode } from 'react';
+import { useEffect, useState, type ChangeEvent } from 'react';
 import { getAuditLogs } from '../api/auditLog';
 import type { AuditAction, AuditLog, AuditLogFilter } from '../types/auditLog';
-
-const pageSize = 25;
-
-function getErrorMessage(error: unknown, fallback: string) {
-  if (error && typeof error === 'object' && 'response' in error) {
-    const response = error.response;
-    if (response && typeof response === 'object' && 'data' in response) {
-      const data = response.data;
-      if (data && typeof data === 'object' && 'message' in data && typeof data.message === 'string') {
-        return data.message;
-      }
-    }
-  }
-
-  return fallback;
-}
-
-function formatTimestamp(value: string) {
-  const date = new Date(value);
-  return Number.isNaN(date.getTime())
-    ? 'Not available'
-    : new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' }).format(date);
-}
+import FilterBar from '../components/FilterBar';
+import FilterField from '../components/FilterField';
+import Pagination from '../components/Pagination';
+import { formatTimestamp } from '../lib/format';
+import { getErrorMessage } from '../lib/http';
+import { PAGE_SIZE } from '../lib/pagination';
 
 function actionLabel(action: AuditAction) {
   return ['Create', 'Update', 'Delete', 'Login', 'Login failed'][action] ?? 'Unknown';
@@ -44,15 +27,6 @@ function formatSnapshot(value: string | null) {
   } catch {
     return value;
   }
-}
-
-function FilterField({ label, children }: { label: string; children: ReactNode }) {
-  return (
-    <label className="flex min-w-0 flex-col gap-2 text-xs font-bold uppercase tracking-[0.12em] text-[#183b70]">
-      {label}
-      {children}
-    </label>
-  );
 }
 
 export default function AuditLogPage() {
@@ -78,7 +52,7 @@ export default function AuditLogPage() {
       dateFrom: dateFrom || undefined,
       dateTo: dateTo ? `${dateTo}T23:59:59` : undefined,
       page: currentPage,
-      pageSize,
+      pageSize: PAGE_SIZE,
     };
 
     setIsLoading(true);
@@ -127,7 +101,7 @@ export default function AuditLogPage() {
         <p className="mt-2 max-w-xl text-base text-slate-600">Review system changes and user activity.</p>
       </div>
 
-      <div className="mt-6 grid gap-4 border border-slate-200 bg-[#f5f7fa] p-4 sm:grid-cols-2 lg:grid-cols-5">
+      <FilterBar onClear={clearFilters}>
         <FilterField label="Entity">
           <select value={entityName} onChange={(event) => { setEntityName(event.target.value); resetPage(); }} className="border border-slate-300 bg-white px-3 py-2 text-sm font-normal normal-case tracking-normal text-slate-700 outline-none focus:border-[#183b70]">
             <option value="">All entities</option>
@@ -156,8 +130,7 @@ export default function AuditLogPage() {
         <FilterField label="To">
           <input type="date" value={dateTo} onChange={(event) => { setDateTo(event.target.value); resetPage(); }} className="border border-slate-300 bg-white px-3 py-2 text-sm font-normal normal-case tracking-normal text-slate-700 outline-none focus:border-[#183b70]" />
         </FilterField>
-        <button type="button" onClick={clearFilters} className="justify-self-start border border-[#183b70] px-3 py-2 text-xs font-bold uppercase tracking-wider text-[#183b70] transition hover:bg-[#183b70] hover:text-white sm:col-span-2 lg:col-span-5">Clear filters</button>
-      </div>
+      </FilterBar>
 
       <div className="mt-6 overflow-hidden border border-slate-200">
         {isLoading && <p className="p-8 text-center text-sm text-slate-500">Loading audit log...</p>}
@@ -216,15 +189,7 @@ export default function AuditLogPage() {
         )}
       </div>
 
-      {!isLoading && !loadError && totalCount > 0 && (
-        <div className="mt-5 flex flex-col gap-3 text-sm text-slate-600 sm:flex-row sm:items-center sm:justify-between">
-          <p>Showing page {currentPage} of {totalPages} · {totalCount.toLocaleString()} total entries</p>
-          <div className="flex gap-2">
-            <button type="button" onClick={() => setCurrentPage((page) => Math.max(page - 1, 1))} disabled={currentPage <= 1} className="border border-[#183b70] px-3 py-2 text-xs font-bold uppercase tracking-wider text-[#183b70] transition hover:bg-[#183b70] hover:text-white disabled:cursor-not-allowed disabled:opacity-40">Previous</button>
-            <button type="button" onClick={() => setCurrentPage((page) => Math.min(page + 1, totalPages))} disabled={currentPage >= totalPages} className="border border-[#183b70] px-3 py-2 text-xs font-bold uppercase tracking-wider text-[#183b70] transition hover:bg-[#183b70] hover:text-white disabled:cursor-not-allowed disabled:opacity-40">Next</button>
-          </div>
-        </div>
-      )}
+      {!isLoading && !loadError && <Pagination page={currentPage} totalPages={totalPages} totalCount={totalCount} pageSize={PAGE_SIZE} onPageChange={setCurrentPage} />}
     </section>
   );
 }

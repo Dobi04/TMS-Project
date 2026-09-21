@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using TMS.Application.DTOs.ReportDTOs;
+using TMS.Application.DTOs.TyreDTOs;
 using TMS.Domain.Entities;
 
 namespace TMS.Application.Interfaces.Repositories
@@ -11,8 +12,10 @@ namespace TMS.Application.Interfaces.Repositories
         #region Query Methods
         Task<Tyre?> FindByIdAsync(int id);
         Task<Tyre?> FindByCodeAsync(string code);
-        Task<List<Tyre>> FindByOperatorIdAsync(int operatorId);
-        Task<List<Tyre>> GetAllAsync();
+        Task<(List<Tyre> Items, int TotalCount)> GetPagedAsync(
+            TyreFilterDTO filter,
+            int? operatorScope = null,
+            bool activeOnly = false);
         #endregion
 
         #region Reporting Methods

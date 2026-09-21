@@ -13,13 +13,9 @@ export type AuditLog = {
   ipAddress: string | null;
 };
 
-export type AuditLogPage = {
-  items: AuditLog[];
-  totalCount: number;
-  page: number;
-  pageSize: number;
-  totalPages: number;
-};
+import type { PagedResult } from './paged';
+
+export type AuditLogPage = PagedResult<AuditLog>;
 
 export type AuditLogFilter = {
   entityName?: string;

@@ -28,11 +28,18 @@ namespace TMS.API.Controllers
         #region ProductionOperator Endpoint
         [HttpGet("mine")]
         [Authorize(Roles = nameof(Roles.ProductionOperator))]
-        public async Task<IActionResult> GetMyTyres()
+        public async Task<IActionResult> GetMyTyres([FromQuery] TyreFilterDTO filter)
         {
-            var operatorId = GetCurrentUserId();
-            var tyres = await _tyreServices.GetMyTyresAsync(operatorId);
-            return Ok(tyres);
+            try
+            {
+                var operatorId = GetCurrentUserId();
+                var tyres = await _tyreServices.GetMyTyresAsync(operatorId, filter);
+                return Ok(tyres);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
 
         [HttpPost]
@@ -63,10 +70,17 @@ namespace TMS.API.Controllers
         #region QualitySupervisor Endpoint
         [HttpGet]
         [Authorize(Roles = "QualitySupervisor,BusinessUnitLeader")]
-        public async Task<IActionResult> GetAllTyres()
+        public async Task<IActionResult> GetAllTyres([FromQuery] TyreFilterDTO filter)
         {
-            var tyres = await _tyreServices.GetAllTyresAsync();
-            return Ok(tyres);
+            try
+            {
+                var tyres = await _tyreServices.GetAllTyresAsync(filter);
+                return Ok(tyres);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
 
         [HttpPut("{id:int}")]

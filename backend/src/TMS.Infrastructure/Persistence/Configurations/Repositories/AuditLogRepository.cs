@@ -17,6 +17,27 @@ namespace TMS.Infrastructure.Persistence.Configurations.Repositories
         public async Task<AuditLog?> FindByIdAsync(int id) =>
             await _appDbContext.AuditLogs.FirstOrDefaultAsync(auditLog => auditLog.Id == id);
 
+        public async Task<(List<AuditLog> Items, int TotalCount)> GetPagedAsync(
+            string? entityName = null,
+            int? userId = null,
+            AuditAction? action = null,
+            DateTime? dateFrom = null,
+            DateTime? dateTo = null,
+            int page = 1,
+            int pageSize = 10)
+        {
+            var query = BuildQuery(entityName, null, userId, action, dateFrom, dateTo);
+            var totalCount = await query.CountAsync();
+            var items = await query
+                .OrderByDescending(auditLog => auditLog.Timestamp)
+                .ThenByDescending(auditLog => auditLog.Id)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return (items, totalCount);
+        }
+
         public async Task<List<AuditLog>> GetAllAsync(
             string? entityName = null,
             string? entityId = null,
@@ -24,6 +45,22 @@ namespace TMS.Infrastructure.Persistence.Configurations.Repositories
             AuditAction? action = null,
             DateTime? dateFrom = null,
             DateTime? dateTo = null)
+        {
+            var query = BuildQuery(entityName, entityId, userId, action, dateFrom, dateTo);
+
+            return await query
+                .OrderByDescending(auditLog => auditLog.Timestamp)
+                .ThenByDescending(auditLog => auditLog.Id)
+                .ToListAsync();
+        }
+
+        private IQueryable<AuditLog> BuildQuery(
+            string? entityName,
+            string? entityId,
+            int? userId,
+            AuditAction? action,
+            DateTime? dateFrom,
+            DateTime? dateTo)
         {
             var query = _appDbContext.AuditLogs.AsQueryable();
 
@@ -45,9 +82,7 @@ namespace TMS.Infrastructure.Persistence.Configurations.Repositories
             if (dateTo.HasValue)
                 query = query.Where(auditLog => auditLog.Timestamp <= dateTo.Value);
 
-            return await query
-                .OrderByDescending(auditLog => auditLog.Timestamp)
-                .ToListAsync();
+            return query;
         }
 
         public Task AddAsync(AuditLog auditLog) => _appDbContext.AuditLogs.AddAsync(auditLog).AsTask();

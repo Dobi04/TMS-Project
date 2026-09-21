@@ -7,9 +7,6 @@ namespace TMS.Application.Services
 {
     public class AuditLogService : IAuditLogServices
     {
-        private const int DefaultPageSize = 50;
-        private const int MaxPageSize = 200;
-
         private readonly IAuditLogRepository _auditLogRepository;
 
         public AuditLogService(IAuditLogRepository auditLogRepository)
@@ -20,31 +17,30 @@ namespace TMS.Application.Services
         public async Task<AuditLogPagedResponseDTO> GetAllAsync(AuditLogFilterDTO filter)
         {
             var page = Math.Max(filter.Page, 1);
-            var pageSize = Math.Clamp(filter.PageSize, 1, MaxPageSize);         
+            var pageSize = Math.Clamp(filter.PageSize, 1, PaginationConstants.MaxPageSize);
             if (filter.PageSize <= 0)
-                pageSize = DefaultPageSize;
+                pageSize = PaginationConstants.DefaultPageSize;
 
-            var auditLogs = await _auditLogRepository.GetAllAsync(
+            var result = await _auditLogRepository.GetPagedAsync(
                 filter.EntityName,
                 userId: filter.UserId,
                 action: filter.Action,
                 dateFrom: filter.DateFrom,
-                dateTo: filter.DateTo);
+                dateTo: filter.DateTo,
+                page: page,
+                pageSize: pageSize);
 
-            var totalCount = auditLogs.Count;
-            var items = auditLogs
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
+            var items = result.Items
                 .Select(ToResponseDto)
                 .ToList();
 
             return new AuditLogPagedResponseDTO
             {
                 Items = items,
-                TotalCount = totalCount,
+                TotalCount = result.TotalCount,
                 Page = page,
                 PageSize = pageSize,
-                TotalPages = totalCount == 0 ? 0 : (int)Math.Ceiling(totalCount / (double)pageSize)
+                TotalPages = result.TotalCount == 0 ? 0 : (int)Math.Ceiling(result.TotalCount / (double)pageSize)
             };
         }
 
