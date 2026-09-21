@@ -28,17 +28,19 @@ namespace TMS.Application.Services
 
         public async Task<SaleResponseDTO> CreateSaleAsync(int registeredById, CreateSaleDTO dto)
         {
-            var tyre = await _tyreRepository.FindByIdAsync(dto.TyreId)
-                ?? throw new KeyNotFoundException("Tyre not found.");
+            var code = dto.TyreCode.Trim();
+            var tyre = await _tyreRepository.FindByCodeAsync(code);
+            if (tyre is null || !tyre.IsActive)
+                throw new KeyNotFoundException($"Tyre with code '{code}' not found.");
 
-            var alreadySold = await _salesRepository.GetTotalSoldForTyreAsync(dto.TyreId);
+            var alreadySold = await _salesRepository.GetTotalSoldForTyreAsync(tyre.Id);
             var available = tyre.QuantityProduced - alreadySold;
             if (dto.QuantitySold > available)
                 throw new InvalidOperationException($"Cannot sell {dto.QuantitySold} units of tyre '{tyre.Code}' — only {available} are currently in stock.");
 
             var sale = new SaleEntity
             {
-                TyreId = dto.TyreId,
+                TyreId = tyre.Id,
                 RegisteredById = registeredById,
                 QuantitySold = dto.QuantitySold,
                 UnitOfMeasure = dto.UnitOfMeasure,

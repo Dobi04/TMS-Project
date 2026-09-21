@@ -3,7 +3,6 @@ import { apiClient } from '../api/client';
 
 type Sale = {
   id: number;
-  tyreId: number;
   tyreCode: string;
   quantitySold: number;
   unitOfMeasure: string;
@@ -16,7 +15,7 @@ type Sale = {
 };
 
 type SaleForm = {
-  tyreId: string;
+  tyreCode: string;
   quantitySold: string;
   unitOfMeasure: string;
   salePriceByUnit: string;
@@ -26,7 +25,7 @@ type SaleForm = {
 };
 
 const emptyForm: SaleForm = {
-  tyreId: '',
+  tyreCode: '',
   quantitySold: '',
   unitOfMeasure: '',
   salePriceByUnit: '',
@@ -130,12 +129,11 @@ export default function SaleHistoryPage() {
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const tyreId = Number(form.tyreId);
     const quantitySold = Number(form.quantitySold);
     const salePriceByUnit = Number(form.salePriceByUnit);
 
-    if (!Number.isInteger(tyreId) || tyreId < 1) {
-      setValidationError('Tyre ID must be a whole number greater than zero.');
+    if (!form.tyreCode.trim() || form.tyreCode.trim().length > 50) {
+      setValidationError('Tyre code is required and must be 50 characters or fewer.');
       return;
     }
     if (!Number.isInteger(quantitySold) || quantitySold < 1) {
@@ -165,7 +163,7 @@ export default function SaleHistoryPage() {
 
     try {
       const response = await apiClient.post<Sale>('/api/Sales', {
-        tyreId,
+        tyreCode: form.tyreCode.trim(),
         quantitySold,
         unitOfMeasure: form.unitOfMeasure.trim(),
         salePriceByUnit,
@@ -263,9 +261,8 @@ export default function SaleHistoryPage() {
 
             <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
               <label className="block">
-                <span className="mb-2 block text-sm font-medium text-[#183b70]">Tyre ID</span>
-                {/* TODO: zameniti dropdown-om kada bude dostupan endpoint za listu aktivnih tira */}
-                <input type="number" name="tyreId" value={form.tyreId} onChange={handleChange} min="1" step="1" required className="w-full border border-slate-200 bg-slate-50 px-3 py-3 text-sm text-[#183b70] outline-none transition focus:border-[#f5c400]" placeholder="Tyre ID" />
+                <span className="mb-2 block text-sm font-medium text-[#183b70]">Tyre Code</span>
+                <input type="text" name="tyreCode" value={form.tyreCode} onChange={handleChange} maxLength={50} required className="w-full border border-slate-200 bg-slate-50 px-3 py-3 text-sm text-[#183b70] outline-none transition focus:border-[#f5c400]" placeholder="Tyre code" />
               </label>
 
               <div className="grid gap-4 sm:grid-cols-2">

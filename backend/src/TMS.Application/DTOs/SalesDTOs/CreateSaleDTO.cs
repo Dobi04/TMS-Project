@@ -5,8 +5,8 @@ namespace TMS.Application.DTOs.SalesDTOs
 {
     public class CreateSaleDTO
     {
-        [Required]
-        public int TyreId { get; set; }
+        [Required, StringLength(50)]
+        public string TyreCode { get; set; } = string.Empty;
 
         [Required, Range(1, int.MaxValue)]
         public int QuantitySold { get; set; }
