@@ -31,6 +31,9 @@ namespace TMS.Application.Services
             var tyre = await _tyreRepository.FindByIdAsync(dto.TyreId)
                 ?? throw new KeyNotFoundException("Tyre not found.");
 
+            if (tyre.QuantityProduced <= dto.QuantitySold)
+                throw new InvalidOperationException("You cant sell more thyres then there are in storage");
+
             var sale = new SaleEntity
             {
                 TyreId = dto.TyreId,
@@ -84,7 +87,7 @@ namespace TMS.Application.Services
             DestinationMarket = sale.DestinationMarket,
             PurchasingCompany = sale.PurchasingCompany,
             RegisteredById = sale.RegisteredById,
-            isActive = sale.isActive
+            IsActive = sale.IsActive
         };
         #endregion
     }

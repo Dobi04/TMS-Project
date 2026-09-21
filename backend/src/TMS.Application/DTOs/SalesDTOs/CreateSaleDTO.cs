@@ -15,7 +15,7 @@ namespace TMS.Application.DTOs.SalesDTOs
         public string UnitOfMeasure { get; set; } = string.Empty;
 
         [Required, Range(0.01, double.MaxValue)]
-        public double SalePriceByUnit { get; set; }
+        public decimal SalePriceByUnit { get; set; }
 
         public DateTime? SaleDate { get; set; }
 

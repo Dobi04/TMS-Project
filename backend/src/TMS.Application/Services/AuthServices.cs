@@ -7,6 +7,7 @@ using TMS.Application.Interfaces.Security;
 using TMS.Domain.Entities;
 using System.Security.Cryptography;
 using System.Text;
+using System.Net;
 
 namespace TMS.Application.Services;
 
@@ -40,10 +41,10 @@ public class AuthServices : IAuthServices
         if (user == null || !_passwordHasher.Verify(dto.Password, user.PasswordHash))
             throw new UnauthorizedAccessException("Wrong username or password");
 
-        if (!user.isEmailVerified)
+        if (!user.IsEmailVerified)
             throw new UnauthorizedAccessException("Email is not verified, please verify your email before logging in");
 
-        if (!user.isActive)
+        if (!user.IsActive)
             throw new UnauthorizedAccessException("Wrong username or password");
 
         return new AuthResponseDTO
@@ -98,6 +99,7 @@ public class AuthServices : IAuthServices
 
         await _userRepository.AddPendingAsync(pendingRegistration);
         await _userRepository.SaveChangesAsync();
+        var safeName = WebUtility.HtmlEncode(pendingRegistration.Name);
         await _emailSender.SendEmailAsync(
             pendingRegistration.Email,
             "Verifikacija naloga",
@@ -156,7 +158,7 @@ public class AuthServices : IAuthServices
             Username = pendingRegistration.Username,
             Email = pendingRegistration.Email,
             PasswordHash = pendingRegistration.PasswordHash,
-            isEmailVerified = true
+            IsEmailVerified = true
         };
 
         await _userRepository.Add(user);

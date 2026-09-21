@@ -27,6 +27,6 @@ namespace TMS.Application.DTOs.TyreDTOs
         [Required, Range(1, int.MaxValue)]
         public int MachineNumber { get; set; }
 
-        public bool isActive { get; set; }
+        public bool IsActive { get; set; }
     }
 }

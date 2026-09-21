@@ -20,7 +20,7 @@ namespace TMS.Infrastructure.Persistence.Configurations
                 .HasMaxLength(20)
                 .IsRequired();
             builder.Property(tyre => tyre.MachineNumber).IsRequired();
-            builder.Property(tyre => tyre.isActive).IsRequired().HasDefaultValue(true);
+            builder.Property(tyre => tyre.IsActive).IsRequired().HasDefaultValue(true);
 
             builder.HasIndex(tyre => tyre.Code).IsUnique();
             builder.HasIndex(tyre => tyre.MachineNumber);

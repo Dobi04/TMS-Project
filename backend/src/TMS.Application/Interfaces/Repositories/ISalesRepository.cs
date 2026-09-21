@@ -12,6 +12,10 @@ namespace TMS.Application.Interfaces.Repositories
         Task<List<SaleEntity>> GetAllAsync();
         #endregion
 
+        #region Reporting Methods
+        Task<Dictionary<string, int>> GetSoldByCodeAsync(DateTime asOfDate);
+        #endregion
+
         #region Command Methods
         Task AddAsync(SaleEntity sale);
         Task SaveChangesAsync();

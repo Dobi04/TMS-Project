@@ -15,6 +15,6 @@ namespace TMS.Application.DTOs.TyreDTOs
         public DateTime ProductionDate { get; set; }
         public string ProductionShift { get; set; } = string.Empty;
         public int MachineNumber { get; set; }
-        public bool isActive { get; set; }
+        public bool IsActive { get; set; }
     }
 }

@@ -15,6 +15,6 @@ namespace TMS.Domain.Entities
         public DateTime ProductionDate { get; set; } = DateTime.UtcNow;
         public Shift ProductionShift { get; set; } = Shift.NotAdded;
         public int MachineNumber { get; set; }
-        public bool isActive { get; set; } = true;
+        public bool IsActive { get; set; } = true;
     }
 }

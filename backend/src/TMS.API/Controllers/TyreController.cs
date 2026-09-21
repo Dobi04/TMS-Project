@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.EntityFrameworkCore;
+using MySqlConnector;
 using System.Security.Claims;
 using TMS.Application.DTOs.TyreDTOs;
 using TMS.Application.Interfaces.Tyres;
@@ -47,6 +49,10 @@ namespace TMS.API.Controllers
             {
                 return BadRequest(new { message = ex.Message });
             }
+            catch (DbUpdateException ex) when (ex.InnerException is MySqlException { Number: 1062 })
+            {
+                return Conflict(new { message = "A tyre with this code already exists." });
+            }
         }
         #endregion
 
@@ -75,6 +81,10 @@ namespace TMS.API.Controllers
             catch (InvalidOperationException ex)
             {
                 return BadRequest(new { message = ex.Message });
+            }
+            catch (DbUpdateException ex) when (ex.InnerException is MySqlException { Number: 1062 })
+            {
+                return Conflict(new { message = "A tyre with this code already exists." });
             }
         }
 

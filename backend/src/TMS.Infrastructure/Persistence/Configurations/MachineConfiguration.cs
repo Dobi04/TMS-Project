@@ -13,7 +13,7 @@ namespace TMS.Infrastructure.Persistence.Configurations
             builder.HasKey(machine => machine.Id);
             builder.Property(machine => machine.MachineNumber).IsRequired();
             builder.Property(machine => machine.Name).IsRequired().HasMaxLength(100);
-            builder.Property(machine => machine.isActive).IsRequired().HasDefaultValue(true);
+            builder.Property(machine => machine.IsActive).IsRequired().HasDefaultValue(true);
 
             builder.HasIndex(machine => machine.MachineNumber).IsUnique();
         }

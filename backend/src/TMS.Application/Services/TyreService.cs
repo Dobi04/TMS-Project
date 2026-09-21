@@ -49,7 +49,7 @@ namespace TMS.Application.Services
             tyre.ProductionDate = dto.ProductionDate;
             tyre.ProductionShift = dto.ProductionShift;
             tyre.MachineNumber = dto.MachineNumber;
-            tyre.isActive = dto.isActive;
+            tyre.IsActive = dto.IsActive;
 
             await _tyreRepository.SaveChangesAsync();
 
@@ -62,7 +62,7 @@ namespace TMS.Application.Services
             var tyre = await _tyreRepository.FindByIdAsync(id)
             ?? throw new KeyNotFoundException("Tyre not found.");
 
-            tyre.isActive = false;
+            tyre.IsActive = false;
 
             await _tyreRepository.SaveChangesAsync();
         }
@@ -101,7 +101,7 @@ namespace TMS.Application.Services
             ProductionDate = tyre.ProductionDate,
             ProductionShift = tyre.ProductionShift.ToString(),
             MachineNumber = tyre.MachineNumber,
-            isActive = tyre.isActive
+            IsActive = tyre.IsActive
         };
         #endregion
 

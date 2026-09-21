@@ -9,6 +9,6 @@ namespace TMS.Domain.Entities
         public int Id { get; set; }
         public int MachineNumber { get; set; }
         public string Name { get; set; } = string.Empty;
-        public bool isActive { get; set; } = true;
+        public bool IsActive { get; set; } = true;
     }
 }

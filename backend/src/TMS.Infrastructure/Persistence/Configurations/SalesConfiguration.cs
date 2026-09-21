@@ -19,7 +19,7 @@ namespace TMS.Infrastructure.Persistence.Configurations
             builder.Property(sale => sale.SaleDate).IsRequired();
             builder.Property(sale => sale.PurchasingCompany).IsRequired().HasMaxLength(150).HasColumnName("PurcesingCompany");
             builder.Property(sale => sale.DestinationMarket).IsRequired().HasMaxLength(100);
-            builder.Property(sale => sale.isActive).IsRequired().HasDefaultValue(true);
+            builder.Property(sale => sale.IsActive).IsRequired().HasDefaultValue(true);
 
             builder.HasIndex(sale => sale.TyreId);
             builder.HasIndex(sale => sale.RegisteredById).HasDatabaseName("IX_Sales_SuperVisorId");

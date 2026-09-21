@@ -12,7 +12,7 @@ namespace TMS.Domain.Entities
         public string PasswordHash { get; set; } = string.Empty;
         public Roles Role { get; set; } = Roles.Guest;
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-        public bool isEmailVerified { get; set; } = false;
-        public bool isActive { get; set; } = true;
+        public bool IsEmailVerified { get; set; } = false;
+        public bool IsActive { get; set; } = true;
     }
 }
