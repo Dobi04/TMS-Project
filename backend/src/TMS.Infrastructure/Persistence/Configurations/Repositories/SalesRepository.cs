@@ -30,6 +30,10 @@ namespace TMS.Infrastructure.Persistence.Configurations.Repositories
             await _appDbContext.Sales
                 .OrderByDescending(s => s.SaleDate)
                 .ToListAsync();
+        public async Task<int> GetTotalSoldForTyreAsync(int tyreId) =>
+            await _appDbContext.Sales
+                .Where(s => s.TyreId == tyreId && s.IsActive)
+                .SumAsync(s => (int?)s.QuantitySold) ?? 0;
         #endregion
 
         #region Reporting Methods

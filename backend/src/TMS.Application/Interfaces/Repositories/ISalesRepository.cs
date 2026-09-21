@@ -10,6 +10,7 @@ namespace TMS.Application.Interfaces.Repositories
         Task<SaleEntity?> FindByIdAsync(int id);
         Task<List<SaleEntity>> FindByRegisteredByIdAsync(int registeredById);
         Task<List<SaleEntity>> GetAllAsync();
+        Task<int> GetTotalSoldForTyreAsync(int tyreId);
         #endregion
 
         #region Reporting Methods

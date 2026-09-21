@@ -1,12 +1,15 @@
 using TMS.Application.DTOs.AuthDTOs;
 using TMS.Application.DTOs.EmailVerificationDTOs;
+using TMS.Application.Interfaces;
 using TMS.Application.Interfaces.Authentication;
 using TMS.Application.Interfaces.Communication;
 using TMS.Application.Interfaces.Repositories;
 using TMS.Application.Interfaces.Security;
 using TMS.Domain.Entities;
+using TMS.Domain.Enums;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.Json;
 using System.Net;
 
 namespace TMS.Application.Services;
@@ -20,17 +23,23 @@ public class AuthServices : IAuthServices
     private readonly IJwtTokenGenerator _jwtTokenGenerator;
     private readonly IPasswordHasher _passwordHasher;
     private readonly IEmailSender _emailSender;
+    private readonly IAuditLogRepository _auditLogRepository;
+    private readonly ICurrentUserService _currentUserService;
 
     public AuthServices(
         IUserRepository userRepository,
         IJwtTokenGenerator jwtTokenGenerator,
         IPasswordHasher passwordHasher,
-        IEmailSender emailSender)
+        IEmailSender emailSender,
+        IAuditLogRepository auditLogRepository,
+        ICurrentUserService currentUserService)
     {
         _userRepository = userRepository;
         _jwtTokenGenerator = jwtTokenGenerator;
         _passwordHasher = passwordHasher;
         _emailSender = emailSender;
+        _auditLogRepository = auditLogRepository;
+        _currentUserService = currentUserService;
     }
     #endregion
 
@@ -39,13 +48,24 @@ public class AuthServices : IAuthServices
     {
         var user = await _userRepository.FindByUsernameAsync(dto.Username);
         if (user == null || !_passwordHasher.Verify(dto.Password, user.PasswordHash))
+        {
+            await LogLoginAsync(user, dto.Username, AuditAction.LoginFailed, "Wrong username or password");
             throw new UnauthorizedAccessException("Wrong username or password");
+        }
 
         if (!user.IsEmailVerified)
+        {
+            await LogLoginAsync(user, dto.Username, AuditAction.LoginFailed, "Email is not verified");
             throw new UnauthorizedAccessException("Email is not verified, please verify your email before logging in");
+        }
 
         if (!user.IsActive)
+        {
+            await LogLoginAsync(user, dto.Username, AuditAction.LoginFailed, "Wrong username or password");
             throw new UnauthorizedAccessException("Wrong username or password");
+        }
+
+        await LogLoginAsync(user, dto.Username, AuditAction.Login, null);
 
         return new AuthResponseDTO
         {
@@ -53,6 +73,23 @@ public class AuthServices : IAuthServices
             Username = user.Username,
             Role = user.Role.ToString()
         };
+    }
+
+    private async Task LogLoginAsync(User? user, string username, AuditAction action, string? reason)
+    {
+        await _auditLogRepository.AddAsync(new AuditLog
+        {
+            EntityName = nameof(User),
+            EntityId = user?.Id.ToString() ?? username,
+            Action = action,
+            UserId = user?.Id,
+            Username = user?.Username ?? username,
+            IpAddress = _currentUserService.IpAddress,
+            Timestamp = DateTime.UtcNow,
+            NewValues = JsonSerializer.Serialize(new { reason })
+        });
+
+        await _auditLogRepository.SaveChangesAsync();
     }
     #endregion
 

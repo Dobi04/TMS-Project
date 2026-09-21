@@ -34,8 +34,7 @@ namespace TMS.Infrastructure.Security
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));
             var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
-            var expirationText = _configuration["Jwt:ExpiresInMinutes"]
-                ?? _configuration["Jwt:ExpiresInMinutes"];
+            var expirationText = _configuration["Jwt:ExpiresInMinutes"];
             if (!int.TryParse(expirationText, out var expirationMinutes))
                 throw new InvalidOperationException("Jwt expiration is not configured correctly.");
 

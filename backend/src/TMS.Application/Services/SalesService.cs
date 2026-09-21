@@ -31,8 +31,10 @@ namespace TMS.Application.Services
             var tyre = await _tyreRepository.FindByIdAsync(dto.TyreId)
                 ?? throw new KeyNotFoundException("Tyre not found.");
 
-            if (tyre.QuantityProduced <= dto.QuantitySold)
-                throw new InvalidOperationException("You cant sell more thyres then there are in storage");
+            var alreadySold = await _salesRepository.GetTotalSoldForTyreAsync(dto.TyreId);
+            var available = tyre.QuantityProduced - alreadySold;
+            if (dto.QuantitySold > available)
+                throw new InvalidOperationException($"Cannot sell {dto.QuantitySold} units of tyre '{tyre.Code}' — only {available} are currently in stock.");
 
             var sale = new SaleEntity
             {
