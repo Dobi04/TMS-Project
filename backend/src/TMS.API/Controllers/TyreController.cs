@@ -45,6 +45,10 @@ namespace TMS.API.Controllers
                 var result = await _tyreServices.CreateTyreAsync(operatorId, dto);
                 return Created($"/api/tyre/{result.Id}", result);
             }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
             catch (InvalidOperationException ex)
             {
                 return BadRequest(new { message = ex.Message });

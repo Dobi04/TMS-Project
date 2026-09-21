@@ -35,6 +35,7 @@ namespace TMS.Infrastructure
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<IEmailSender, SmtpEmailSender>();
 
+            services.AddScoped<IMachineRepository, MachineRepository>();
             services.AddScoped<ITyreRepository, TyreRepository>();
             services.AddScoped<ISalesRepository, SalesRepository>();
             services.AddScoped<IAuditLogRepository, AuditLogRepository>();

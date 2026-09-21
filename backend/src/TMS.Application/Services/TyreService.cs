@@ -12,10 +12,12 @@ namespace TMS.Application.Services
     {
         #region Constants and Constructors
         private readonly ITyreRepository _tyreRepository;
+        private readonly IMachineRepository _machineRepository;
 
-        public TyreService(ITyreRepository tyreRepository)
+        public TyreService(ITyreRepository tyreRepository, IMachineRepository machineRepository)
         {
             this._tyreRepository = tyreRepository;
+            this._machineRepository = machineRepository;
         }
         #endregion
 
@@ -38,6 +40,10 @@ namespace TMS.Application.Services
         {
             var tyre = await _tyreRepository.FindByIdAsync(id)
             ?? throw new KeyNotFoundException("Tyre not found.");
+
+            var machine = await _machineRepository.FindByMachineNumberAsync(dto.MachineNumber);
+            if (machine is null || !machine.IsActive)
+                throw new KeyNotFoundException($"Machine with number {dto.MachineNumber} not found.");
 
             var duplicate = await _tyreRepository.FindByCodeAsync(dto.Code);
             if (duplicate != null && duplicate.Id != id)
@@ -71,6 +77,10 @@ namespace TMS.Application.Services
         #region Shared Operations
         public async Task<TyreResponseDTO> CreateTyreAsync(int operatorId, CreateTyreDTO dto)
         {
+            var machine = await _machineRepository.FindByMachineNumberAsync(dto.MachineNumber);
+            if (machine is null || !machine.IsActive)
+                throw new KeyNotFoundException($"Machine with number {dto.MachineNumber} not found.");
+
             var existing = await _tyreRepository.FindByCodeAsync(dto.Code);
             if (existing != null)
                 throw new InvalidOperationException("A tyre with this code already exists.");
