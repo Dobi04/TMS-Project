@@ -233,7 +233,7 @@ function Snapshot({ title, value }: { title: string; value: string | null }) {
   return (
     <div className="min-w-0 border border-slate-200 bg-slate-50 p-3">
       <p className="text-xs font-bold uppercase tracking-wider text-[#183b70]">{title}</p>
-      <pre className="mt-2 max-h-64 overflow-auto whitespace-pre-wrap break-words text-xs leading-5 text-slate-600">{formatSnapshot(value)}</pre>
+      <pre className="mt-2 max-h-64 overflow-auto whitespace-pre-wrap wrap-break-word text-xs leading-5 text-slate-600">{formatSnapshot(value)}</pre>
     </div>
   );
 }
