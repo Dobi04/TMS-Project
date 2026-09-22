@@ -29,7 +29,7 @@ namespace TMS.API.Controllers
         #region Authentication Endpoints
         [HttpGet("me")]
         [EnableRateLimiting("auth")]
-        [Authorize]
+        [AllowAnonymous]
         public IActionResult Me()
         {
             var username = User.FindFirstValue(ClaimTypes.Name);

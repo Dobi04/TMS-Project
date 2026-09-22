@@ -108,6 +108,8 @@ builder.Services.AddRateLimiter(options =>
 #region App Pipeline
 var app = builder.Build();
 
+app.UseForwardedHeaders();
+
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
@@ -116,7 +118,6 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseCors("AllowFrontend");
 app.UseRateLimiter();
-app.UseForwardedHeaders();
 
 app.UseAuthentication();
 app.UseAuthorization();

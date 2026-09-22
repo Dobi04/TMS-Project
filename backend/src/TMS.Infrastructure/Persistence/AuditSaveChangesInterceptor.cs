@@ -20,33 +20,62 @@ namespace TMS.Infrastructure.Persistence
 
         private readonly ICurrentUserService _currentUserService;
 
+        // Popunjava se u SavingChangesAsync, čita se u SavedChangesAsync (posle upisa u bazu).
+        private List<PendingAuditEntry>? _pendingEntries;
+
         public AuditSaveChangesInterceptor(ICurrentUserService currentUserService)
         {
             _currentUserService = currentUserService;
         }
 
-        public override async ValueTask<InterceptionResult<int>> SavingChangesAsync(
+        public override ValueTask<InterceptionResult<int>> SavingChangesAsync(
             DbContextEventData eventData,
             InterceptionResult<int> result,
             CancellationToken cancellationToken = default)
         {
             if (eventData.Context is AppDbContext dbContext)
             {
-                var auditEntries = dbContext.ChangeTracker.Entries()
+                _pendingEntries = dbContext.ChangeTracker.Entries()
                     .Where(entry => entry.Entity is not AuditLog &&
                         AuditedEntityNames.Contains(entry.Metadata.ClrType.Name) &&
                         entry.State is EntityState.Added or EntityState.Modified or EntityState.Deleted)
-                    .Select(CreateAuditLog)
+                    .Select(CreatePendingEntry)
                     .ToList();
-
-                if (auditEntries.Count > 0)
-                    await dbContext.AuditLogs.AddRangeAsync(auditEntries, cancellationToken);
             }
 
-            return await base.SavingChangesAsync(eventData, result, cancellationToken);
+            return base.SavingChangesAsync(eventData, result, cancellationToken);
         }
 
-        private AuditLog CreateAuditLog(EntityEntry entry)
+        public override async ValueTask<int> SavedChangesAsync(
+            SaveChangesCompletedEventData eventData,
+            int result,
+            CancellationToken cancellationToken = default)
+        {
+            if (_pendingEntries is { Count: > 0 } pending && eventData.Context is AppDbContext dbContext)
+            {
+                _pendingEntries = null;
+
+                var auditLogs = pending.Select(pendingEntry => new AuditLog
+                {
+                    EntityName = pendingEntry.EntityName,
+                    EntityId = pendingEntry.EntityId ?? GetEntityId(pendingEntry.Entry),
+                    Action = pendingEntry.Action,
+                    UserId = _currentUserService.UserId,
+                    Username = _currentUserService.Username ?? string.Empty,
+                    IpAddress = _currentUserService.IpAddress,
+                    Timestamp = DateTime.UtcNow,
+                    OldValues = pendingEntry.OldValues,
+                    NewValues = pendingEntry.NewValues
+                }).ToList();
+
+                await dbContext.AuditLogs.AddRangeAsync(auditLogs, cancellationToken);
+                await dbContext.SaveChangesAsync(cancellationToken);
+            }
+
+            return await base.SavedChangesAsync(eventData, result, cancellationToken);
+        }
+
+        private static PendingAuditEntry CreatePendingEntry(EntityEntry entry)
         {
             var action = entry.State switch
             {
@@ -56,21 +85,21 @@ namespace TMS.Infrastructure.Persistence
                 _ => throw new InvalidOperationException("Unsupported audit entry state.")
             };
 
-            var key = entry.Properties.FirstOrDefault(property => property.Metadata.IsPrimaryKey());
-            var entityId = key?.CurrentValue?.ToString() ?? string.Empty;
+            var entityId = entry.State == EntityState.Added ? null : GetEntityId(entry);
 
-            return new AuditLog
-            {
-                EntityName = entry.Metadata.ClrType.Name,
-                EntityId = entityId,
-                Action = action,
-                UserId = _currentUserService.UserId,
-                Username = _currentUserService.Username ?? string.Empty,
-                IpAddress = _currentUserService.IpAddress,
-                Timestamp = DateTime.UtcNow,
-                OldValues = SerializeValues(entry, useOriginalValues: true),
-                NewValues = SerializeValues(entry, useOriginalValues: false)
-            };
+            return new PendingAuditEntry(
+                Entry: entry,
+                EntityName: entry.Metadata.ClrType.Name,
+                Action: action,
+                EntityId: entityId,
+                OldValues: SerializeValues(entry, useOriginalValues: true),
+                NewValues: SerializeValues(entry, useOriginalValues: false));
+        }
+
+        private static string GetEntityId(EntityEntry entry)
+        {
+            var key = entry.Properties.FirstOrDefault(property => property.Metadata.IsPrimaryKey());
+            return key?.CurrentValue?.ToString() ?? string.Empty;
         }
 
         private static string? SerializeValues(EntityEntry entry, bool useOriginalValues)
@@ -90,5 +119,13 @@ namespace TMS.Infrastructure.Persistence
 
             return values.Count == 0 ? null : JsonSerializer.Serialize(values);
         }
+
+        private sealed record PendingAuditEntry(
+            EntityEntry Entry,
+            string EntityName,
+            AuditAction Action,
+            string? EntityId,
+            string? OldValues,
+            string? NewValues);
     }
 }
