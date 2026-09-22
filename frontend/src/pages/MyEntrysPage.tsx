@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
 import { apiClient } from '../api/client';
 import { getMyTyres } from '../api/tyres';
+import { getMachines } from '../api/machines';
 import FilterBar from '../components/FilterBar';
 import FilterField from '../components/FilterField';
 import Pagination from '../components/Pagination';
+import SearchableSelect from '../components/SearchableSelect';
 import { usePagedQuery } from '../hooks/usePagedQuery';
 import { useDebouncedValue } from '../hooks/useDebouncedValue';
 import { formatDate } from '../lib/format';
@@ -45,6 +47,8 @@ export default function MyEntrysPage() {
   const [validationError, setValidationError] = useState('');
   const [submitError, setSubmitError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [machines, setMachines] = useState<{ machineNumber: number; name: string }[]>([]);
+  const [machineLoadError, setMachineLoadError] = useState('');
   const query = usePagedQuery(
     {
       code: debouncedCode || undefined,
@@ -57,6 +61,10 @@ export default function MyEntrysPage() {
     getMyTyres,
   );
   const loadError = query.error ? getErrorMessage(query.error, 'Could not load your production entries.') : '';
+
+  useEffect(() => {
+    getMachines().then(setMachines).catch((error: unknown) => setMachineLoadError(getErrorMessage(error, 'Could not load machines.')));
+  }, []);
 
   useEffect(() => {
     if (!isModalOpen) {
@@ -110,8 +118,8 @@ export default function MyEntrysPage() {
       setValidationError('Select a production shift.');
       return;
     }
-    if (!Number.isInteger(machineNumber) || machineNumber < 1) {
-      setValidationError('Machine number must be a whole number greater than zero.');
+    if (!Number.isInteger(machineNumber) || machineNumber < 1 || !machines.some((machine) => machine.machineNumber === machineNumber)) {
+      setValidationError('Select a valid machine.');
       return;
     }
 
@@ -261,8 +269,8 @@ export default function MyEntrysPage() {
                   <input type="number" name="quantityProduced" value={form.quantityProduced} onChange={handleChange} min="1" step="1" required className="w-full border border-slate-200 bg-slate-50 px-3 py-3 text-sm text-[#183b70] outline-none transition focus:border-[#f5c400]" />
                 </label>
                 <label className="block">
-                  <span className="mb-2 block text-sm font-medium text-[#183b70]">Machine Number</span>
-                  <input type="number" name="machineNumber" value={form.machineNumber} onChange={handleChange} min="1" step="1" required className="w-full border border-slate-200 bg-slate-50 px-3 py-3 text-sm text-[#183b70] outline-none transition focus:border-[#f5c400]" />
+                  <span className="mb-2 block text-sm font-medium text-[#183b70]">Machine</span>
+                  <SearchableSelect value={form.machineNumber} options={machines.map((machine) => ({ value: String(machine.machineNumber), label: `${machine.machineNumber} - ${machine.name}` }))} placeholder={machineLoadError || 'Search machine'} disabled={Boolean(machineLoadError) || machines.length === 0} onChange={(value) => { setForm((current) => ({ ...current, machineNumber: value })); setValidationError(''); setSubmitError(''); }} />
                 </label>
               </div>
 

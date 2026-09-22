@@ -13,6 +13,12 @@ namespace TMS.Infrastructure.Persistence.Configurations.Repositories
             _appDbContext = appDbContext;
         }
 
+        public async Task<List<Machine>> GetActiveAsync() =>
+            await _appDbContext.Machines
+                .Where(machine => machine.IsActive)
+                .OrderBy(machine => machine.MachineNumber)
+                .ToListAsync();
+
         public async Task<Machine?> FindByMachineNumberAsync(int machineNumber) =>
             await _appDbContext.Machines
                 .FirstOrDefaultAsync(machine => machine.MachineNumber == machineNumber);

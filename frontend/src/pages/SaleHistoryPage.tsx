@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
 import { apiClient } from '../api/client';
 import { getMySales } from '../api/sales';
+import { getAllTyres } from '../api/tyres';
 import FilterBar from '../components/FilterBar';
 import FilterField from '../components/FilterField';
 import Pagination from '../components/Pagination';
+import SearchableSelect from '../components/SearchableSelect';
 import { usePagedQuery } from '../hooks/usePagedQuery';
 import { useDebouncedValue } from '../hooks/useDebouncedValue';
 import { formatDate } from '../lib/format';
@@ -42,6 +44,8 @@ export default function SaleHistoryPage() {
   const [validationError, setValidationError] = useState('');
   const [submitError, setSubmitError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [tyres, setTyres] = useState<{ code: string }[]>([]);
+  const [tyreLoadError, setTyreLoadError] = useState('');
   const debouncedTyreCode = useDebouncedValue(tyreCodeFilter);
   const debouncedDestinationMarket = useDebouncedValue(destinationMarketFilter);
   const debouncedPurchasingCompany = useDebouncedValue(purchasingCompanyFilter);
@@ -57,6 +61,12 @@ export default function SaleHistoryPage() {
     getMySales,
   );
   const loadError = query.error ? getErrorMessage(query.error, 'Could not load your sales.') : '';
+
+  useEffect(() => {
+    getAllTyres({ isActive: true }, 1, 100)
+      .then((result) => setTyres(result.items))
+      .catch((error: unknown) => setTyreLoadError(getErrorMessage(error, 'Could not load tyres.')));
+  }, []);
 
   useEffect(() => {
     if (!isModalOpen) {
@@ -256,8 +266,8 @@ export default function SaleHistoryPage() {
 
             <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
               <label className="block">
-                <span className="mb-2 block text-sm font-medium text-[#183b70]">Tyre Code</span>
-                <input type="text" name="tyreCode" value={form.tyreCode} onChange={handleChange} maxLength={50} required className="w-full border border-slate-200 bg-slate-50 px-3 py-3 text-sm text-[#183b70] outline-none transition focus:border-[#f5c400]" placeholder="Tyre code" />
+                <span className="mb-2 block text-sm font-medium text-[#183b70]">Tyre</span>
+                <SearchableSelect value={form.tyreCode} options={tyres.map((tyre) => ({ value: tyre.code, label: tyre.code }))} placeholder={tyreLoadError || 'Search tyre by name or code'} disabled={Boolean(tyreLoadError) || tyres.length === 0} onChange={(value) => { setForm((current) => ({ ...current, tyreCode: value })); setValidationError(''); setSubmitError(''); }} />
               </label>
 
               <div className="grid gap-4 sm:grid-cols-2">
